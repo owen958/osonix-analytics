@@ -1569,7 +1569,12 @@ const SpotifyConnector = {
 
     const verifier   = await this.generateCodeVerifier();
     const challenge  = await this.generateCodeChallenge(verifier);
+
+    // Store verifier in multiple places to survive the redirect
     safeSession.setItem('sp_code_verifier', verifier);
+    safeStorage.setItem('sp_code_verifier', verifier);
+    // Also encode it into the state param so it survives even if memory clears
+    const statePayload = btoa(JSON.stringify({ cv: verifier }));
 
     const params = new URLSearchParams({
       response_type: 'code',
@@ -1578,20 +1583,14 @@ const SpotifyConnector = {
       redirect_uri:  this.REDIRECT_URI,
       code_challenge_method: 'S256',
       code_challenge: challenge,
+      state: statePayload,
     });
 
-    const authUrl = `https://accounts.spotify.com/authorize?${params}`;
-    // Use direct anchor navigation — most reliable cross-browser approach
-    const a = document.createElement('a');
-    a.href = authUrl;
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    window.location.href = `https://accounts.spotify.com/authorize?${params}`;
   },
 
   async exchangeCode(code) {
-    const verifier = safeSession.getItem('sp_code_verifier');
+    const verifier = safeSession.getItem('sp_code_verifier') || safeStorage.getItem('sp_code_verifier');
     const clientId = DashboardState.credentials.spotify.client_id ||
                      safeStorage.getItem('sp_client_id') || '';
 
@@ -1705,12 +1704,24 @@ const SpotifyConnector = {
     const params = new URLSearchParams(window.location.search);
     const code   = params.get('code');
     const error  = params.get('error');
+    const state  = params.get('state');
 
     if (error) {
       setSpotifyStatus('error', `Auth error: ${error}`);
       return false;
     }
     if (!code) return false;
+
+    // Recover verifier from state param if memory was cleared during redirect
+    if (state) {
+      try {
+        const decoded = JSON.parse(atob(state));
+        if (decoded.cv) {
+          safeSession.setItem('sp_code_verifier', decoded.cv);
+          safeStorage.setItem('sp_code_verifier', decoded.cv);
+        }
+      } catch(e) {}
+    }
 
     // Clean the URL
     window.history.replaceState({}, '', window.location.pathname);
