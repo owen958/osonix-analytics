@@ -1636,28 +1636,44 @@ const SpotifyConnector = {
     const token = this.getToken();
     if (!token) throw new Error('No valid Spotify token. Please connect first.');
 
-    const res = await fetch(`${this.API_BASE}/artists/${artistId}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (!res.ok) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const res = await fetch(`${this.API_BASE}/artists/${artistId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) return res.json();
+      if (res.status === 429) {
+        const retry = parseInt(res.headers.get('Retry-After') || '3');
+        await new Promise(r => setTimeout(r, (retry + 1) * 1000));
+        continue;
+      }
       if (res.status === 401) {
-        // Clear stale token
         safeStorage.removeItem('sp_access_token');
         throw new Error('Spotify token expired. Please reconnect.');
       }
       throw new Error(`Spotify API error: ${res.status}`);
     }
-    return res.json();
+    throw new Error('Spotify rate limit — please wait a moment and refresh.');
   },
 
   async fetchTopTracks(artistId, market = 'US') {
     const token = this.getToken();
     if (!token) return null;
-    const res = await fetch(`${this.API_BASE}/artists/${artistId}/top-tracks?market=${market}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (!res.ok) return null;
-    return res.json();
+    // Retry once on 429 with backoff
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const res = await fetch(`${this.API_BASE}/artists/${artistId}/top-tracks?market=${market}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) return res.json();
+      if (res.status === 429) {
+        const retry = parseInt(res.headers.get('Retry-After') || '2');
+        await new Promise(r => setTimeout(r, (retry + 1) * 1000));
+        continue;
+      }
+      // 403 or other error — return null gracefully, don't block artist load
+      console.warn('Top tracks fetch failed:', res.status);
+      return null;
+    }
+    return null;
   },
 
   // --- Main load ---
@@ -1670,10 +1686,10 @@ const SpotifyConnector = {
 
     setSpotifyStatus('loading', 'Loading…');
 
-    const [artistData, topTracksData] = await Promise.all([
-      this.fetchArtist(artistId),
-      this.fetchTopTracks(artistId),
-    ]);
+    // Fetch artist first, then top tracks with slight delay to avoid rate limiting
+    const artistData = await this.fetchArtist(artistId);
+    await new Promise(r => setTimeout(r, 300));
+    const topTracksData = await this.fetchTopTracks(artistId);
 
     const topTrack = topTracksData?.tracks?.[0]?.name || null;
     const genres   = artistData.genres?.slice(0, 3).join(', ') || '—';
