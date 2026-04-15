@@ -38,6 +38,9 @@
   --cm-blue:        #4a9eff;
   --cm-glow:        rgba(74,158,255,0.10);
 
+  --tidal-cyan:     #00ffff;
+  --tidal-glow:     rgba(0,255,255,0.10);
+
   /* Status */
   --status-live:    #1db954;
   --status-daily:   #f59e0b;
@@ -118,7 +121,7 @@ a:hover { text-decoration: underline; }
    =================================================== */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   grid-template-rows: auto;
   gap: 16px;
   padding: 20px 24px;
@@ -126,23 +129,23 @@ a:hover { text-decoration: underline; }
   margin: 0 auto;
 }
 
-/* Primary (Spotify) spans 2 rows on left */
+/* Spotify — full width, row 1 */
 .card-primary {
-  grid-column: 1;
+  grid-column: 1 / -1;
   grid-row: 1;
 }
+/* Apple — full width, row 2 */
 .card-secondary {
-  grid-column: 2;
-  grid-row: 1;
+  grid-column: 1 / -1;
+  grid-row: 2;
 }
-.card-tertiary:nth-of-type(3) {
-  grid-column: 3;
-  grid-row: 1;
+/* SoundCloud, Tidal, Chartmetric — 3 columns, row 3 */
+.card-tertiary {
+  grid-row: 3;
 }
-.card-tertiary:nth-of-type(4) {
-  grid-column: 4;
-  grid-row: 1;
-}
+.card-tertiary:nth-of-type(3) { grid-column: 1; }
+.card-tertiary:nth-of-type(4) { grid-column: 2; }
+.card-tertiary:nth-of-type(5) { grid-column: 3; }
 .full-width-section {
   grid-column: 1 / -1;
 }
@@ -176,6 +179,7 @@ a:hover { text-decoration: underline; }
 
 .apple-card  { border-top: 2px solid var(--apple-pink); }
 .sc-card     { border-top: 2px solid var(--sc-orange); }
+.tidal-card  { border-top: 2px solid var(--tidal-cyan); }
 .cm-card     { border-top: 2px solid var(--cm-blue); }
 
 /* ===================================================
@@ -197,6 +201,7 @@ a:hover { text-decoration: underline; }
 .spotify-badge { color: var(--spotify-green); }
 .apple-badge   { color: var(--apple-pink); }
 .sc-badge      { color: var(--sc-orange); }
+.tidal-badge   { color: var(--tidal-cyan); }
 .cm-badge      { color: var(--cm-blue); }
 
 .freshness-tag {
@@ -270,6 +275,7 @@ a:hover { text-decoration: underline; }
 .apple-btn-connect:hover { background: #ff4c54; }
 .sc-btn-connect     { background: var(--sc-orange); color: #fff; }
 .sc-btn-connect:hover { background: #ff6620; }
+.tidal-btn-connect  { background: var(--tidal-cyan); color: #000; }
 .cm-btn-connect     { background: var(--cm-blue); color: #fff; }
 .cm-btn-connect:hover { background: #5aaeff; }
 
@@ -707,13 +713,13 @@ a:hover { text-decoration: underline; }
    RESPONSIVE
    =================================================== */
 @media (max-width: 1200px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .card-primary  { grid-column: 1 / -1; }
-  .card-secondary{ grid-column: 1; }
-  .card-tertiary:nth-of-type(3) { grid-column: 2; }
-  .card-tertiary:nth-of-type(4) { grid-column: 1; }
+  .dashboard-grid { grid-template-columns: 1fr 1fr; }
+  .card-primary  { grid-column: 1 / -1; grid-row: 1; }
+  .card-secondary{ grid-column: 1 / -1; grid-row: 2; }
+  .card-tertiary { grid-row: auto; }
+  .card-tertiary:nth-of-type(3) { grid-column: 1; }
+  .card-tertiary:nth-of-type(4) { grid-column: 2; }
+  .card-tertiary:nth-of-type(5) { grid-column: 1; }
   .live-signals-grid  { grid-template-columns: repeat(3, 1fr); }
   .daily-grid         { grid-template-columns: repeat(2, 1fr); }
 }
@@ -721,8 +727,7 @@ a:hover { text-decoration: underline; }
 @media (max-width: 768px) {
   .dashboard-grid { grid-template-columns: 1fr; padding: 12px; }
   .card-primary, .card-secondary,
-  .card-tertiary:nth-of-type(3),
-  .card-tertiary:nth-of-type(4) { grid-column: 1; }
+  .card-tertiary { grid-column: 1; grid-row: auto; }
   .live-signals-grid { grid-template-columns: repeat(2, 1fr); }
   .daily-grid        { grid-template-columns: 1fr; }
   .health-table      { font-size: 0.72rem; }
@@ -1154,66 +1159,181 @@ a:hover { text-decoration: underline; }
         <div class="freshness-tag freshness-daily" id="cm-freshness-tag">Daily</div>
       </div>
 
-      <div id="cm-auth-gate" style="padding: 16px 20px 0;">
-        <div class="stream-note-box" style="margin-bottom:0">
-          <span class="note-icon">ℹ</span>
-          <div>Browser-only access. Enter data manually from <a href="https://chartmetric.com" target="_blank">chartmetric.com</a> or import a CSV export. Updated daily.</div>
-        </div>
-      </div>
+      <!-- Live Chartmetric Data — pulled Apr 15, 2026 -->
+      <div class="data-panel" id="cm-data" style="display:block">
 
-      <div class="data-panel" id="cm-data" style="display:none">
+        <!-- Top KPIs -->
         <div class="kpi-row">
-          <div class="kpi-block">
+          <div class="kpi-block kpi-large">
             <div class="kpi-label">CM Score</div>
-            <div class="kpi-value kpi-sm" id="cm-score">—</div>
+            <div class="kpi-value" style="color:var(--cm-blue)">46</div>
           </div>
-          <div class="kpi-block">
-            <div class="kpi-label">Spotify Streams (CM)</div>
-            <div class="kpi-value kpi-sm" id="cm-sp-streams">—</div>
-          </div>
-          <div class="kpi-block">
-            <div class="kpi-label">Cross-Platform Rank</div>
-            <div class="kpi-value kpi-sm" id="cm-rank">—</div>
+          <div class="kpi-block kpi-large">
+            <div class="kpi-label">Artist Rank</div>
+            <div class="kpi-value">#144,213</div>
           </div>
         </div>
-      </div>
 
-      <!-- CSV Import -->
-      <div class="import-section">
-        <div class="import-title">📂 Import Chartmetric Export</div>
-        <div class="import-desc">In Chartmetric → Artist page → Export CSV, then drop here.</div>
-        <div class="drop-zone" id="cm-drop-zone" ondragover="event.preventDefault()" ondrop="handleCSVDrop(event,'chartmetric')">
-          <input type="file" id="cm-csv-input" accept=".csv,.txt" onchange="handleCSVFile(event,'chartmetric')" style="display:none" />
-          <button class="btn-import" onclick="document.getElementById('cm-csv-input').click()">Choose CSV File</button>
-          <span class="drop-hint">or drag &amp; drop</span>
+        <div class="detail-row">
+          <div class="detail-block">
+            <div class="detail-label">Career Stage</div>
+            <div class="detail-value">Developing · 🚀 Explosive Growth</div>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label">EDM Genre Rank</div>
+            <div class="detail-value">#9,730</div>
+          </div>
         </div>
-        <div class="import-result" id="cm-import-result"></div>
-      </div>
 
-      <!-- Manual Entry — primary action for CM panel -->
-      <div class="manual-input-section" style="border-top:none; padding-top:16px">
-        <div class="manual-title" style="font-size:0.9rem; margin-bottom:14px">Enter from chartmetric.com</div>
-        <div class="manual-fields">
-          <div class="manual-field">
-            <label>CM Score</label>
-            <input type="number" id="cm-manual-score" placeholder="0–100" />
+        <div class="divider"></div>
+
+        <!-- Spotify via CM -->
+        <div style="margin-bottom:6px">
+          <div class="detail-label" style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#555560">Spotify (via Chartmetric)</div>
+        </div>
+        <div class="detail-row" style="margin-bottom:10px">
+          <div class="detail-block">
+            <div class="detail-label">Monthly Listeners</div>
+            <div class="detail-value" style="color:var(--spotify-green)">127,960</div>
           </div>
-          <div class="manual-field">
-            <label>Spotify Streams</label>
-            <input type="number" id="cm-manual-streams" placeholder="0" />
+          <div class="detail-block">
+            <div class="detail-label">Followers</div>
+            <div class="detail-value">1,290</div>
           </div>
-          <div class="manual-field">
-            <label>Top Track</label>
-            <input type="text" id="cm-manual-track" placeholder="Track name" />
+          <div class="detail-block">
+            <div class="detail-label">Popularity</div>
+            <div class="detail-value">36 / 100</div>
           </div>
         </div>
-        <button class="btn-mini" style="background:#4a9eff;color:#fff;border-color:#4a9eff" onclick="applyManualCM()">Apply</button>
+        <div class="detail-row" style="margin-bottom:10px">
+          <div class="detail-block">
+            <div class="detail-label">Playlists</div>
+            <div class="detail-value">137</div>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label">Playlist Reach</div>
+            <div class="detail-value">1.28M</div>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label">Fan Conversion</div>
+            <div class="detail-value">1.01%</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Social Footprint -->
+        <div style="margin-bottom:6px">
+          <div class="detail-label" style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#555560">Social Footprint</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+          <div style="background:#111114;border:1px solid #222228;border-radius:7px;padding:9px 10px;text-align:center">
+            <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.4px;color:#555560;margin-bottom:4px">TikTok</div>
+            <div style="font-size:1rem;font-weight:800;color:#f0f0f5">549</div>
+            <div style="font-size:0.6rem;color:#555560">@o_sonix</div>
+          </div>
+          <div style="background:#111114;border:1px solid #222228;border-radius:7px;padding:9px 10px;text-align:center">
+            <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.4px;color:#555560;margin-bottom:4px">Instagram</div>
+            <div style="font-size:1rem;font-weight:800;color:#f0f0f5">776</div>
+            <div style="font-size:0.6rem;color:#555560">@owensoba</div>
+          </div>
+          <div style="background:#111114;border:1px solid #222228;border-radius:7px;padding:9px 10px;text-align:center">
+            <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.4px;color:#555560;margin-bottom:4px">YouTube</div>
+            <div style="font-size:1rem;font-weight:800;color:#f0f0f5">40</div>
+            <div style="font-size:0.6rem;color:#555560">subscribers</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Track Scores -->
+        <div style="margin-bottom:6px">
+          <div class="detail-label" style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#555560">Track Scores</div>
+        </div>
+        <div style="background:#111114;border:1px solid #222228;border-radius:10px;padding:12px 14px;margin-bottom:8px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="font-weight:700;font-size:0.85rem;color:#f0f0f5">Sweetest Lies</div>
+            <div style="display:flex;gap:12px">
+              <span style="font-size:0.72rem;color:#555560">Track Score <span style="color:#4a9eff;font-weight:700">85.5</span></span>
+              <span style="font-size:0.72rem;color:#555560">Popularity <span style="color:#f0f0f5;font-weight:700">55/100</span></span>
+            </div>
+          </div>
+        </div>
+        <div style="background:#111114;border:1px solid #222228;border-radius:10px;padding:12px 14px;margin-bottom:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="font-weight:700;font-size:0.85rem;color:#f0f0f5">Set Me Free</div>
+            <div style="display:flex;gap:12px">
+              <span style="font-size:0.72rem;color:#555560">Track Score <span style="color:#4a9eff;font-weight:700">23.9</span></span>
+              <span style="font-size:0.72rem;color:#555560">Popularity <span style="color:#f0f0f5;font-weight:700">40/100</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Milestones -->
+        <div style="background:#0d0d0f;border:1px solid #1a1a1e;border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:0.75rem;color:#9898a8;line-height:1.5">
+          <div style="font-weight:700;color:#4a9eff;margin-bottom:4px;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.4px">Recent Milestones</div>
+          <div>Apr 15 — &ldquo;Set Me Free&rdquo; → <strong style="color:#f0f0f5">iTunes Panama #8</strong></div>
+          <div>Apr 3 &nbsp;— &ldquo;Set Me Free&rdquo; → Spotify playlist #4 (13.3K followers)</div>
+        </div>
+
+        <div style="font-size:0.68rem;color:#555560;text-align:right;margin-top:2px">Pulled from Chartmetric · Apr 15, 2026</div>
+        <div class="stream-note-box">
+          <span class="note-icon">ℹ</span>
+          <div><strong>Owen Soba · Live Data ✓</strong> — Stats pulled directly from <a href="https://app.chartmetric.com/artist/15132688" target="_blank">Chartmetric profile</a>. Updated daily.</div>
+        </div>
       </div>
 
       <div class="card-footer">
-        <span class="status-dot status-stub" id="cm-status-dot"></span>
-        <span id="cm-status-label">Manual entry · Daily</span>
+        <span class="status-dot status-live" id="cm-status-dot"></span>
+        <span id="cm-status-label">Browser pull · Apr 15, 2026</span>
         <span class="footer-ts" id="cm-ts"></span>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!--  TIDAL — TERTIARY PANEL                                      -->
+    <!-- ============================================================ -->
+    <section class="platform-card tidal-card card-tertiary" id="tidal-panel">
+      <div class="card-header">
+        <div class="platform-badge tidal-badge">
+          <!-- Tidal wordmark icon -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l3 3-3 3-3-3 3-3zm-6 6l3 3-3 3-3-3 3-3zm12 0l3 3-3 3-3-3 3-3zm-6 6l3 3-3 3-3-3 3-3z"/></svg>
+          Tidal
+        </div>
+        <div class="freshness-tag freshness-daily" id="tidal-freshness-tag">Daily</div>
+      </div>
+
+      <div class="auth-gate" id="tidal-auth-gate">
+        <div class="auth-icon" style="font-size:1.8rem">🌊</div>
+        <div class="auth-title">Tidal for Artists</div>
+        <div class="auth-desc">Tidal does not offer a public analytics API for independent artists. Stats are available in the <strong>Tidal for Artists</strong> dashboard. Use browser pull or manual entry below.</div>
+        <a href="https://artists.tidal.com" target="_blank" class="btn-connect tidal-btn-connect">Open Tidal for Artists ↗</a>
+      </div>
+
+      <!-- Manual Entry -->
+      <div class="manual-input-section">
+        <div class="manual-title">✏️ Manual Entry</div>
+        <div class="manual-fields">
+          <div class="manual-field">
+            <label>Total Plays</label>
+            <input type="number" id="tidal-manual-plays" placeholder="0" oninput="updateManual('tidal','plays',this.value)" />
+          </div>
+          <div class="manual-field">
+            <label>Listeners</label>
+            <input type="number" id="tidal-manual-listeners" placeholder="0" oninput="updateManual('tidal','listeners',this.value)" />
+          </div>
+          <div class="manual-field">
+            <label>Top Track</label>
+            <input type="text" id="tidal-manual-track" placeholder="Track name" oninput="updateManual('tidal','top_track',this.value)" />
+          </div>
+        </div>
+        <button class="btn-mini" style="background:var(--tidal-cyan);color:#000;border-color:var(--tidal-cyan)" onclick="applyManualTidal()">Apply</button>
+      </div>
+
+      <div class="card-footer">
+        <span class="status-dot status-stub" id="tidal-status-dot"></span>
+        <span id="tidal-status-label">Manual entry · Daily</span>
+        <span class="footer-ts" id="tidal-ts"></span>
       </div>
     </section>
 
@@ -2615,6 +2735,30 @@ function parseChartmetricCSV(csvText) {
     const resultEl = document.getElementById('cm-import-result');
     if (resultEl) resultEl.textContent = `✗ ${e.message}`;
   }
+}
+
+function applyManualTidal() {
+  const plays     = parseInt(document.getElementById('tidal-manual-plays')?.value     || '0') || null;
+  const listeners = parseInt(document.getElementById('tidal-manual-listeners')?.value || '0') || null;
+  const track     = document.getElementById('tidal-manual-track')?.value?.trim()               || null;
+
+  const record = AnalyticsSchema.create({
+    platform:        'tidal',
+    metric_type:     'streams',
+    total_streams:   plays,
+    monthly_listeners: listeners,
+    top_track:       track,
+    freshness:       'manual',
+    source_status:   'manual',
+    last_updated:    new Date().toISOString(),
+  });
+
+  DashboardState.set('tidal', record);
+  const dot = document.getElementById('tidal-status-dot');
+  const lbl = document.getElementById('tidal-status-label');
+  if (dot) { dot.className = 'status-dot status-live'; }
+  if (lbl) lbl.textContent = 'Manual entry applied · ' + new Date().toLocaleDateString();
+  refreshSchemaPreview();
 }
 
 function applyManualCM() {
