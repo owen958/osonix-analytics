@@ -853,7 +853,7 @@ a:hover { text-decoration: underline; }
         <div class="stream-note-box">
           <span class="note-icon">ℹ</span>
           <div>
-            <strong>Stream Counts:</strong> Spotify does not expose per-artist stream totals via public API. Cumulative streams are only available inside <a href="https://artists.spotify.com" target="_blank">Spotify for Artists</a> (browser, delayed ~24h). This dashboard shows Followers &amp; Popularity Score from the live API.
+            <strong>Connected as Owen Soba ✓</strong> — Spotify's public API does not expose follower counts or popularity scores for all artists (these fields are deprecated/gated). Your live stats are at <a href="https://artists.spotify.com" target="_blank">Spotify for Artists</a>. Paste your monthly listeners and stream count in the manual field below.
           </div>
         </div>
 
@@ -1788,13 +1788,19 @@ function renderSpotify(record, artistData, genres) {
   if (gate) gate.style.display = 'none';
   if (data) { data.style.display = 'flex'; data.classList.add('fade-in'); }
 
-  // KPIs — followers.total may be 0 for smaller artists (Spotify deprecated field)
-  const followersVal = (record.followers !== null && record.followers !== undefined) 
-    ? AnalyticsSchema.formatNumber(record.followers) 
-    : '—';
+  // KPIs
+  const followersVal = (record.followers !== null && record.followers !== undefined)
+    ? AnalyticsSchema.formatNumber(record.followers)
+    : 'See S4A';
+  const popularityVal = (record.trend_value !== null && record.trend_value !== undefined)
+    ? record.trend_value
+    : 'N/A';
   el('sp-followers',   followersVal);
-  el('sp-popularity',  (record.trend_value !== null && record.trend_value !== undefined) ? record.trend_value : '—');
-  el('sp-listeners',   '—');   // requires S4A browser
+  el('sp-popularity',  popularityVal);
+  el('sp-listeners',   'See S4A');
+  // Live signals
+  el('live-sp-followers',  followersVal);
+  el('live-sp-popularity', popularityVal);
   console.log('Spotify data loaded:', JSON.stringify({followers: record.followers, popularity: record.trend_value, name: record.artist_name, top_track: record.top_track}));
 
   // Details
