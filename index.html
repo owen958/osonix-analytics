@@ -805,6 +805,7 @@ a:hover { text-decoration: underline; }
         <div class="auth-title">Connect Spotify for Artists</div>
         <div class="auth-desc">Authenticate with your Spotify account to pull live follower count and top track data. Stream counts require Spotify for Artists (browser only — see notes).</div>
         <button class="btn-connect spotify-btn-connect" id="spotify-connect-btn" onclick="spotifyConnect()">Connect with Spotify</button>
+        <button class="btn-mini" onclick="spotifyDisconnect()" style="margin-top:4px">↺ Reset &amp; Reconnect</button>
         <div class="auth-note">Uses official Spotify Web API · OAuth 2.0 PKCE · No password stored</div>
         <div class="config-row">
           <label>Your Spotify Artist ID:</label>
@@ -1628,7 +1629,11 @@ const SpotifyConnector = {
                    safeStorage.getItem('sp_access_token');
     const expiry = DashboardState.credentials.spotify.token_expiry ||
                    parseInt(safeStorage.getItem('sp_token_expiry') || '0');
-    if (!token || Date.now() >= expiry) return null;
+    // Treat token as expired if it's more than 55 minutes old (tokens last 60 min)
+    if (!token || Date.now() >= expiry) {
+      safeStorage.removeItem('sp_access_token');
+      return null;
+    }
     return token;
   },
 
@@ -1831,6 +1836,24 @@ async function spotifyConnect() {
   safeStorage.setItem('sp_client_id', HARDCODED_CLIENT_ID);
   safeStorage.setItem('sp_artist_id', HARDCODED_ARTIST_ID);
   await SpotifyConnector.authorize();
+}
+
+
+// Force clear all Spotify tokens and reconnect fresh
+function spotifyDisconnect() {
+  safeStorage.removeItem('sp_access_token');
+  safeStorage.removeItem('sp_token_expiry');
+  safeSession.removeItem('sp_code_verifier');
+  safeStorage.removeItem('sp_code_verifier');
+  DashboardState.credentials.spotify.access_token = null;
+  DashboardState.credentials.spotify.token_expiry = null;
+  // Hide data panel, show auth gate
+  const gate = document.getElementById('spotify-auth-gate');
+  const data = document.getElementById('spotify-data');
+  if (gate) gate.style.display = 'flex';
+  if (data) data.style.display = 'none';
+  setSpotifyStatus('', 'Disconnected — click Connect to reconnect');
+  showToast('Spotify disconnected. Click Connect to reconnect fresh.', 'info');
 }
 
 function saveSpotifyId(val) {
