@@ -972,74 +972,86 @@ a:hover { text-decoration: underline; }
         <div class="freshness-tag freshness-daily" id="apple-freshness-tag">Daily</div>
       </div>
 
-      <div class="auth-gate" id="apple-auth-gate">
-        <div class="auth-icon">🍎</div>
-        <div class="auth-title">Apple Music Analytics API</div>
-        <div class="auth-desc">The Music Analytics API requires <strong>250,000+ plays/month</strong> threshold AND a key generated via iTunes Connect. This is a label-tier API — individual artists use the browser dashboard only.</div>
-        <a href="https://artists.apple.com" target="_blank" class="btn-connect apple-btn-connect">Open Apple Music for Artists ↗</a>
-        <div class="auth-note">iTunes Connect → Users and Access → Keys tab → Generate API key</div>
-
-        <div class="config-row">
-          <label>Apple Analytics API Key (if eligible):</label>
-          <input type="text" id="apple-api-key-input" placeholder="Paste your Apple Analytics API token" oninput="saveAppleKey(this.value)" />
-        </div>
-        <button class="btn-mini apple-load-btn" onclick="loadAppleData()">Try Load Data</button>
-      </div>
-
-      <div class="data-panel" id="apple-data" style="display:none">
+      <!-- Live Apple Music for Artists Data — pulled Apr 15, 2026 -->
+      <div class="data-panel" id="apple-data" style="display:block">
         <div class="kpi-row">
           <div class="kpi-block kpi-large">
-            <div class="kpi-label">Total Plays</div>
-            <div class="kpi-value" id="ap-plays">—</div>
+            <div class="kpi-label">Lifetime Plays</div>
+            <div class="kpi-value" style="color:var(--apple-pink)">66,245</div>
           </div>
           <div class="kpi-block kpi-large">
-            <div class="kpi-label">Unique Listeners</div>
-            <div class="kpi-value" id="ap-listeners">—</div>
+            <div class="kpi-label">28-Day Plays</div>
+            <div class="kpi-value">27,197</div>
           </div>
         </div>
         <div class="detail-row">
           <div class="detail-block">
             <div class="detail-label">Top Track</div>
-            <div class="detail-value" id="ap-top-track">—</div>
+            <div class="detail-value">Sweetest Lies</div>
           </div>
         </div>
-      </div>
 
-      <!-- CSV Import fallback -->
-      <div class="import-section" id="apple-import">
-        <div class="import-title">📂 Import Apple Analytics Export</div>
-        <div class="import-desc">Export from Apple Music for Artists → Trends → Download CSV, then drop here.</div>
-        <div class="drop-zone" id="apple-drop-zone" ondragover="event.preventDefault()" ondrop="handleCSVDrop(event,'apple')">
-          <input type="file" id="apple-csv-input" accept=".csv,.txt" onchange="handleCSVFile(event,'apple')" style="display:none" />
-          <button class="btn-import" onclick="document.getElementById('apple-csv-input').click()">Choose CSV File</button>
-          <span class="drop-hint">or drag &amp; drop</span>
+        <div class="divider"></div>
+        <div style="margin-bottom:6px">
+          <div class="detail-label" style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#555560">Track Performance</div>
         </div>
-        <div class="import-result" id="apple-import-result"></div>
-      </div>
 
-      <!-- Manual Input -->
-      <div class="manual-input-section">
-        <div class="manual-title">✏️ Manual Entry</div>
-        <div class="manual-fields">
-          <div class="manual-field">
-            <label>Total Plays</label>
-            <input type="number" id="ap-manual-plays" placeholder="0" oninput="updateManual('apple','plays',this.value)" />
+        <!-- Sweetest Lies -->
+        <div style="background:#111114;border:1px solid #222228;border-radius:10px;padding:14px 16px;margin-bottom:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div style="font-weight:700;font-size:0.9rem;color:#f0f0f5">Sweetest Lies</div>
+            <div style="font-size:0.68rem;color:#555560;font-weight:500">Jan 16, 2026</div>
           </div>
-          <div class="manual-field">
-            <label>Listeners</label>
-            <input type="number" id="ap-manual-listeners" placeholder="0" oninput="updateManual('apple','listeners',this.value)" />
-          </div>
-          <div class="manual-field">
-            <label>Top Track</label>
-            <input type="text" id="ap-manual-track" placeholder="Track name" oninput="updateManual('apple','top_track',this.value)" />
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+            <div style="background:#0d0d0f;border:1px solid #1a1a1e;border-radius:7px;padding:10px 12px;text-align:center">
+              <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.4px;color:#555560;margin-bottom:5px">7 Days</div>
+              <div style="font-size:1.15rem;font-weight:800;color:#fc3c44">4,986</div>
+            </div>
+            <div style="background:#0d0d0f;border:1px solid #1a1a1e;border-radius:7px;padding:10px 12px;text-align:center">
+              <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.4px;color:#555560;margin-bottom:5px">28 Days</div>
+              <div style="font-size:1.15rem;font-weight:800;color:#f0f0f5">19,811</div>
+            </div>
+            <div style="background:#0d0d0f;border:1px solid #2a2a30;border-radius:7px;padding:10px 12px;text-align:center">
+              <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.4px;color:#555560;margin-bottom:5px">All Time</div>
+              <div style="font-size:1.15rem;font-weight:800;color:#7b7bff">58,859</div>
+            </div>
           </div>
         </div>
-        <button class="btn-mini" onclick="applyManualApple()">Apply</button>
+
+        <!-- Set Me Free -->
+        <div style="background:#111114;border:1px solid #222228;border-radius:10px;padding:14px 16px;margin-bottom:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div style="font-weight:700;font-size:0.9rem;color:#f0f0f5">Set Me Free <span style="font-weight:400;color:#555560;font-size:0.8rem">(feat. Shea Tilly)</span></div>
+            <div style="font-size:0.68rem;color:#555560;font-weight:500">Mar 20, 2026</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+            <div style="background:#0d0d0f;border:1px solid #1a1a1e;border-radius:7px;padding:10px 12px;text-align:center">
+              <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.4px;color:#555560;margin-bottom:5px">7 Days</div>
+              <div style="font-size:1.15rem;font-weight:800;color:#fc3c44">2,762</div>
+            </div>
+            <div style="background:#0d0d0f;border:1px solid #1a1a1e;border-radius:7px;padding:10px 12px;text-align:center">
+              <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.4px;color:#555560;margin-bottom:5px">28 Days</div>
+              <div style="font-size:1.15rem;font-weight:800;color:#f0f0f5">7,386</div>
+            </div>
+            <div style="background:#0d0d0f;border:1px solid #2a2a30;border-radius:7px;padding:10px 12px;text-align:center">
+              <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.4px;color:#555560;margin-bottom:5px">All Time</div>
+              <div style="font-size:1.15rem;font-weight:800;color:#7b7bff">7,386</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="font-size:0.68rem;color:#555560;text-align:right;margin-top:2px">Pulled from Apple Music for Artists · Apr 15, 2026</div>
+        <div class="stream-note-box">
+          <span class="note-icon">ℹ</span>
+          <div>
+            <strong>Owen Soba · Live Data ✓</strong> — Stats pulled directly from Apple Music for Artists. No 24h filter available — shortest window is 7 days. <a href="https://artists.apple.com" target="_blank">Open AM4A →</a>
+          </div>
+        </div>
       </div>
 
       <div class="card-footer">
-        <span class="status-dot status-limited" id="apple-status-dot"></span>
-        <span id="apple-status-label">Browser / Manual import only</span>
+        <span class="status-dot status-live" id="apple-status-dot"></span>
+        <span id="apple-status-label">Browser pull · Apr 15, 2026</span>
         <span class="footer-ts" id="apple-ts"></span>
       </div>
     </section>
