@@ -1,0 +1,2840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>O-Sonix Artist Analytics</title>
+  <style>
+/* ===================================================
+   O-SONIX ARTIST ANALYTICS DASHBOARD
+   Dark Mode · Clean · Priority: Spotify > Apple > SC > CM
+   =================================================== */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-base:        #0d0d0f;
+  --bg-surface:     #141417;
+  --bg-card:        #18181c;
+  --bg-card-hover:  #1e1e23;
+  --bg-inset:       #111114;
+  --bg-input:       #1a1a1e;
+
+  --border:         #2a2a30;
+  --border-subtle:  #222228;
+
+  --text-primary:   #f0f0f5;
+  --text-secondary: #9898a8;
+  --text-muted:     #555560;
+  --text-link:      #7b7bff;
+
+  /* Platform colors */
+  --spotify-green:  #1db954;
+  --spotify-glow:   rgba(29,185,84,0.15);
+  --apple-pink:     #fc3c44;
+  --apple-glow:     rgba(252,60,68,0.12);
+  --sc-orange:      #ff5500;
+  --sc-glow:        rgba(255,85,0,0.12);
+  --cm-blue:        #4a9eff;
+  --cm-glow:        rgba(74,158,255,0.10);
+
+  /* Status */
+  --status-live:    #1db954;
+  --status-daily:   #f59e0b;
+  --status-nearrt:  #22d3ee;
+  --status-delayed: #f97316;
+  --status-stub:    #6b7280;
+  --status-err:     #ef4444;
+
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  16px;
+  --radius-xl:  22px;
+
+  --shadow-card: 0 2px 20px rgba(0,0,0,0.4);
+  --shadow-glow: 0 0 30px rgba(29,185,84,0.08);
+}
+
+html { font-size: 15px; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+a { color: var(--text-link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ===================================================
+   HEADER
+   =================================================== */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-left { display: flex; align-items: center; gap: 14px; }
+
+.logo-mark {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, var(--spotify-green), #1565c0);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 12px; letter-spacing: 0.5px;
+  color: #fff;
+}
+
+.header-title { font-weight: 700; font-size: 1.05rem; }
+.header-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 1px; }
+
+.header-right { display: flex; align-items: center; gap: 14px; }
+
+.pulse-indicator {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.78rem; color: var(--status-live); font-weight: 500;
+}
+.pulse-dot {
+  width: 8px; height: 8px;
+  background: var(--status-live);
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* ===================================================
+   DASHBOARD GRID
+   =================================================== */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  grid-template-rows: auto;
+  gap: 16px;
+  padding: 20px 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* Primary (Spotify) spans 2 rows on left */
+.card-primary {
+  grid-column: 1;
+  grid-row: 1;
+}
+.card-secondary {
+  grid-column: 2;
+  grid-row: 1;
+}
+.card-tertiary:nth-of-type(3) {
+  grid-column: 3;
+  grid-row: 1;
+}
+.card-tertiary:nth-of-type(4) {
+  grid-column: 4;
+  grid-row: 1;
+}
+.full-width-section {
+  grid-column: 1 / -1;
+}
+
+/* ===================================================
+   PLATFORM CARDS
+   =================================================== */
+.platform-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.platform-card:hover {
+  border-color: #333340;
+  box-shadow: var(--shadow-card), 0 0 0 1px #333340;
+}
+
+/* Spotify primary — bigger visual weight */
+.spotify-card {
+  border-top: 2px solid var(--spotify-green);
+  box-shadow: var(--shadow-card), 0 0 40px var(--spotify-glow);
+}
+.spotify-card:hover { box-shadow: var(--shadow-card), 0 0 60px var(--spotify-glow); }
+
+.apple-card  { border-top: 2px solid var(--apple-pink); }
+.sc-card     { border-top: 2px solid var(--sc-orange); }
+.cm-card     { border-top: 2px solid var(--cm-blue); }
+
+/* ===================================================
+   CARD HEADER
+   =================================================== */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.platform-badge {
+  display: flex; align-items: center; gap: 8px;
+  font-weight: 600; font-size: 0.88rem;
+}
+
+.spotify-badge { color: var(--spotify-green); }
+.apple-badge   { color: var(--apple-pink); }
+.sc-badge      { color: var(--sc-orange); }
+.cm-badge      { color: var(--cm-blue); }
+
+.freshness-tag {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 20px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  background: rgba(107,114,128,0.2);
+  color: var(--text-muted);
+}
+
+.freshness-live   { background: rgba(29,185,84,0.15);  color: var(--spotify-green); }
+.freshness-daily  { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.freshness-nearrt { background: rgba(34,211,238,0.12); color: var(--status-nearrt); }
+.freshness-delayed{ background: rgba(249,115,22,0.15); color: #f97316; }
+
+/* ===================================================
+   AUTH GATE
+   =================================================== */
+.auth-gate {
+  padding: 24px 20px 20px;
+  display: flex; flex-direction: column; gap: 12px;
+  flex: 1;
+}
+
+.auth-icon { font-size: 2rem; }
+.auth-title { font-weight: 700; font-size: 1rem; }
+.auth-desc { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.55; }
+.auth-note { font-size: 0.72rem; color: var(--text-muted); }
+
+.config-row {
+  display: flex; flex-direction: column; gap: 5px;
+}
+.config-row label {
+  font-size: 0.73rem; font-weight: 500; color: var(--text-secondary);
+}
+.config-row input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  padding: 8px 10px;
+  outline: none;
+  font-family: 'Inter', sans-serif;
+  transition: border-color 0.2s;
+}
+.config-row input:focus { border-color: var(--spotify-green); }
+
+/* ===================================================
+   BUTTONS
+   =================================================== */
+.btn-connect {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-weight: 600; font-size: 0.85rem;
+  border: none; cursor: pointer;
+  transition: all 0.18s;
+  text-decoration: none;
+}
+
+.spotify-btn-connect {
+  background: var(--spotify-green);
+  color: #000;
+}
+.spotify-btn-connect:hover { background: #1ed760; transform: translateY(-1px); }
+.apple-btn-connect  { background: var(--apple-pink); color: #fff; }
+.apple-btn-connect:hover { background: #ff4c54; }
+.sc-btn-connect     { background: var(--sc-orange); color: #fff; }
+.sc-btn-connect:hover { background: #ff6620; }
+.cm-btn-connect     { background: var(--cm-blue); color: #fff; }
+.cm-btn-connect:hover { background: #5aaeff; }
+
+.btn-refresh {
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem; font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+  font-family: 'Inter', sans-serif;
+}
+.btn-refresh:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+
+.btn-mini {
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem; font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Inter', sans-serif;
+  align-self: flex-start;
+}
+.btn-mini:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+
+.btn-export {
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem; font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+  font-family: 'Inter', sans-serif;
+}
+.btn-export:hover { background: var(--bg-card-hover); color: var(--text-primary); border-color: #444; }
+
+.btn-import {
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem; font-weight: 500;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+}
+.btn-import:hover { background: var(--bg-card-hover); }
+
+/* ===================================================
+   DATA PANEL (KPI BLOCKS)
+   =================================================== */
+.data-panel { padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 16px; }
+
+.kpi-row {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+
+.kpi-block {
+  background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  flex: 1; min-width: 90px;
+}
+
+.kpi-large { flex: 2; }
+
+.kpi-label {
+  font-size: 0.72rem; font-weight: 500;
+  color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 0.5px; margin-bottom: 6px;
+}
+
+.kpi-value {
+  font-size: 1.7rem; font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+.kpi-sm { font-size: 1.25rem; }
+
+.kpi-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+
+.kpi-trend {
+  font-size: 0.78rem; font-weight: 500; margin-top: 4px;
+}
+.kpi-trend.up   { color: var(--spotify-green); }
+.kpi-trend.down { color: var(--status-err); }
+
+.divider {
+  height: 1px; background: var(--border-subtle);
+  margin: 4px 0;
+}
+
+.detail-row {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.detail-block {
+  flex: 1; min-width: 100px;
+}
+.detail-label {
+  font-size: 0.7rem; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.4px;
+  margin-bottom: 3px;
+}
+.detail-value {
+  font-size: 0.88rem; font-weight: 500; color: var(--text-primary);
+}
+.detail-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+
+/* ===================================================
+   NOTES + MANUAL STREAM
+   =================================================== */
+.stream-note-box {
+  background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 0.78rem; color: var(--text-secondary);
+  display: flex; gap: 8px; align-items: flex-start;
+  line-height: 1.5;
+}
+.note-icon { font-style: normal; flex-shrink: 0; }
+
+.manual-streams-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.manual-streams-row label { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; }
+.manual-streams-row input {
+  flex: 1; background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary); font-size: 0.82rem;
+  padding: 7px 10px; outline: none;
+  font-family: 'Inter', sans-serif;
+}
+.manual-streams-row input:focus { border-color: var(--spotify-green); }
+.manual-tag {
+  font-size: 0.68rem; font-weight: 600;
+  background: rgba(245,158,11,0.15); color: #f59e0b;
+  padding: 3px 8px; border-radius: 20px; white-space: nowrap;
+}
+
+/* ===================================================
+   IMPORT SECTION
+   =================================================== */
+.import-section {
+  padding: 14px 20px 0;
+  border-top: 1px solid var(--border-subtle);
+}
+.import-title {
+  font-size: 0.8rem; font-weight: 600; margin-bottom: 5px;
+}
+.import-desc {
+  font-size: 0.73rem; color: var(--text-muted); margin-bottom: 10px;
+}
+.drop-zone {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg-inset);
+  transition: border-color 0.2s;
+}
+.drop-zone:hover { border-color: var(--text-muted); }
+.drop-hint { font-size: 0.73rem; color: var(--text-muted); }
+.import-result {
+  font-size: 0.75rem; color: var(--spotify-green);
+  margin-top: 6px; min-height: 18px;
+}
+
+/* ===================================================
+   MANUAL INPUT SECTION
+   =================================================== */
+.manual-input-section {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-subtle);
+}
+.manual-title { font-size: 0.8rem; font-weight: 600; margin-bottom: 10px; }
+.manual-fields { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.manual-field { flex: 1; min-width: 90px; display: flex; flex-direction: column; gap: 4px; }
+.manual-field label { font-size: 0.7rem; color: var(--text-muted); }
+.manual-field input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary); font-size: 0.8rem;
+  padding: 7px 9px; outline: none;
+  font-family: 'Inter', sans-serif;
+}
+.manual-field input:focus { border-color: var(--text-link); }
+
+/* ===================================================
+   CARD FOOTER
+   =================================================== */
+.card-footer {
+  padding: 10px 20px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.73rem; color: var(--text-muted);
+}
+.footer-ts { margin-left: auto; }
+
+.status-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  background: var(--text-muted);
+}
+.status-dot.connected   { background: var(--status-live); box-shadow: 0 0 6px var(--status-live); }
+.status-dot.status-limited { background: #f59e0b; }
+.status-dot.status-stub { background: var(--text-muted); }
+.status-dot.status-err  { background: var(--status-err); }
+
+/* ===================================================
+   FULL-WIDTH SECTIONS
+   =================================================== */
+.full-width-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 0;
+  overflow: hidden;
+}
+
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-title {
+  font-weight: 700; font-size: 0.95rem;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-sub { font-size: 0.75rem; color: var(--text-muted); }
+.section-icon { font-size: 1rem; }
+.live-icon { animation: pulse 2s infinite; }
+
+/* ===================================================
+   LIVE SIGNALS
+   =================================================== */
+.live-signals-section { border-top: 2px solid var(--spotify-green); }
+
+.live-signals-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  padding: 20px;
+  gap: 12px;
+}
+
+.live-signal-card {
+  background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.sc-signal { border-top: 1px solid var(--sc-orange); }
+
+.no-signal-card { opacity: 0.45; }
+
+.signal-platform {
+  font-size: 0.68rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+.signal-label { font-size: 0.78rem; color: var(--text-secondary); }
+.signal-value {
+  font-size: 1.5rem; font-weight: 800; color: var(--text-primary);
+  margin: 4px 0;
+}
+.signal-na { font-size: 1rem; font-weight: 500; color: var(--text-muted); }
+.signal-freshness {
+  font-size: 0.68rem; color: var(--text-muted);
+  margin-top: auto;
+}
+
+/* ===================================================
+   DAILY TOTALS
+   =================================================== */
+.daily-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 20px; gap: 12px;
+}
+.daily-card {
+  background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+.daily-platform {
+  font-size: 0.75rem; font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  text-transform: uppercase; letter-spacing: 0.3px;
+}
+.daily-metric { margin-bottom: 10px; }
+.daily-label { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 2px; }
+.daily-value { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
+.daily-tag {
+  font-size: 0.65rem; color: var(--text-muted);
+  margin-top: 8px; padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* ===================================================
+   SOURCE HEALTH TABLE
+   =================================================== */
+.health-table-wrapper { padding: 20px; overflow-x: auto; }
+.health-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.health-table th {
+  text-align: left; padding: 8px 14px;
+  color: var(--text-muted); font-weight: 600;
+  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.4px;
+  border-bottom: 1px solid var(--border);
+}
+.health-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  vertical-align: top;
+}
+.health-table tr:last-child td { border-bottom: none; }
+
+.ht-platform { font-weight: 600; font-size: 0.84rem; }
+.ht-spotify  { color: var(--spotify-green); }
+.ht-apple    { color: var(--apple-pink); }
+.ht-sc       { color: var(--sc-orange); }
+.ht-cm       { color: var(--cm-blue); }
+
+.ft-live    { color: var(--spotify-green); font-weight: 600; }
+.ft-daily   { color: #f59e0b; font-weight: 600; }
+.ft-nearrt  { color: var(--status-nearrt); font-weight: 600; }
+.ft-delayed { color: #f97316; font-weight: 600; }
+
+.hs-tag {
+  display: inline-block;
+  font-size: 0.68rem; font-weight: 700;
+  padding: 3px 9px; border-radius: 20px;
+  text-transform: uppercase; letter-spacing: 0.3px;
+}
+.hs-needs-auth { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.hs-connected  { background: rgba(29,185,84,0.15); color: var(--spotify-green); }
+.hs-limited    { background: rgba(107,114,128,0.2); color: var(--text-muted); }
+.hs-stub       { background: rgba(107,114,128,0.12); color: var(--text-muted); }
+.hs-error      { background: rgba(239,68,68,0.15); color: var(--status-err); }
+
+/* ===================================================
+   EXPORT / SCHEMA
+   =================================================== */
+.export-section {}
+.export-actions {
+  display: flex; gap: 10px;
+  padding: 16px 24px 0;
+  flex-wrap: wrap;
+}
+.schema-preview {
+  background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  margin: 16px 24px 24px;
+  padding: 16px;
+  font-size: 0.77rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: #9898c8;
+  overflow-x: auto;
+  white-space: pre;
+  max-height: 280px;
+  overflow-y: auto;
+  line-height: 1.6;
+}
+
+/* ===================================================
+   CONFIG DRAWER
+   =================================================== */
+.config-fab {
+  position: fixed; bottom: 24px; right: 24px;
+  width: 44px; height: 44px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200;
+  transition: all 0.18s;
+  color: var(--text-secondary);
+}
+.config-fab:hover { background: var(--bg-card-hover); transform: scale(1.08); }
+
+.config-drawer {
+  position: fixed; bottom: 80px; right: 24px;
+  width: 360px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+  z-index: 200;
+  overflow: hidden;
+}
+.config-inner { padding: 20px; }
+.config-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.config-title { font-weight: 700; font-size: 0.95rem; }
+.config-close {
+  background: none; border: none; color: var(--text-muted);
+  cursor: pointer; font-size: 1rem; padding: 4px;
+}
+.config-body { display: flex; flex-direction: column; gap: 20px; }
+.config-section { display: flex; flex-direction: column; gap: 10px; }
+.config-section-title { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+.config-field { display: flex; flex-direction: column; gap: 4px; }
+.config-field label { font-size: 0.72rem; color: var(--text-secondary); }
+.config-field input {
+  background: var(--bg-input); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text-primary);
+  font-size: 0.8rem; padding: 8px 10px; outline: none;
+  font-family: 'Inter', sans-serif;
+}
+.config-field input:focus { border-color: var(--text-link); }
+
+/* ===================================================
+   RESPONSIVE
+   =================================================== */
+@media (max-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .card-primary  { grid-column: 1 / -1; }
+  .card-secondary{ grid-column: 1; }
+  .card-tertiary:nth-of-type(3) { grid-column: 2; }
+  .card-tertiary:nth-of-type(4) { grid-column: 1; }
+  .live-signals-grid  { grid-template-columns: repeat(3, 1fr); }
+  .daily-grid         { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid { grid-template-columns: 1fr; padding: 12px; }
+  .card-primary, .card-secondary,
+  .card-tertiary:nth-of-type(3),
+  .card-tertiary:nth-of-type(4) { grid-column: 1; }
+  .live-signals-grid { grid-template-columns: repeat(2, 1fr); }
+  .daily-grid        { grid-template-columns: 1fr; }
+  .health-table      { font-size: 0.72rem; }
+}
+
+/* ===================================================
+   LOADING + ANIMATION STATES
+   =================================================== */
+.loading .kpi-value,
+.loading .detail-value {
+  background: linear-gradient(90deg, #222228 25%, #2a2a32 50%, #222228 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 4px;
+  color: transparent !important;
+  min-width: 80px;
+  height: 1.5em;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.fade-in { animation: fadeIn 0.3s ease; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ===================================================
+   SCROLLBAR
+   =================================================== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #444; }
+
+</style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <!-- ===== HEADER ===== -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo-mark">O-S</div>
+      <div>
+        <div class="header-title">O-Sonix Artist Analytics</div>
+        <div class="header-sub" id="last-refresh">Last refresh: —</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <a href="setup.html" style="color:#7b7bff;font-size:0.82rem;text-decoration:none">📋 Setup Guide</a>
+      <div class="pulse-indicator" id="live-pulse">
+        <span class="pulse-dot"></span>
+        <span>Live</span>
+      </div>
+      <button class="btn-refresh" id="refresh-all-btn" onclick="refreshAll()">↻ Refresh All</button>
+    </div>
+  </header>
+
+  <!-- ===== MAIN GRID ===== -->
+  <main class="dashboard-grid">
+
+    <!-- ============================================================ -->
+    <!--  SPOTIFY — PRIMARY PANEL                                     -->
+    <!-- ============================================================ -->
+    <section class="platform-card spotify-card card-primary" id="spotify-panel">
+      <div class="card-header">
+        <div class="platform-badge spotify-badge">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.373 0 12s5.37 12 12 12 12-5.373 12-12S18.63 0 12 0zm5.52 17.28c-.22.35-.68.46-1.03.24-2.83-1.73-6.39-2.12-10.58-1.16a.75.75 0 01-.33-1.46c4.59-1.05 8.53-.6 11.7 1.35.36.22.47.68.24 1.03zm1.47-3.27c-.28.44-.87.57-1.3.29-3.24-1.99-8.17-2.57-12-1.4a.938.938 0 11-.54-1.8c4.37-1.32 9.8-.68 13.54 1.6.43.28.57.87.3 1.31zm.13-3.4C15.17 8.34 8.9 8.14 5.34 9.2a1.125 1.125 0 11-.65-2.15c4.07-1.23 10.84-1 15.12 1.56.52.31.69.99.37 1.51-.31.51-.99.69-1.5.37-.01 0-.01-.01-.08-.05z"/></svg>
+          Spotify for Artists
+        </div>
+        <div class="freshness-tag" id="spotify-freshness-tag">—</div>
+      </div>
+
+      <!-- Auth Gate -->
+      <div class="auth-gate" id="spotify-auth-gate">
+        <div class="auth-icon">🔐</div>
+        <div class="auth-title">Connect Spotify for Artists</div>
+        <div class="auth-desc">Authenticate with your Spotify account to pull live follower count and top track data. Stream counts require Spotify for Artists (browser only — see notes).</div>
+        <button class="btn-connect spotify-btn-connect" id="spotify-connect-btn" onclick="spotifyConnect()">Connect with Spotify</button>
+        <div class="auth-note">Uses official Spotify Web API · OAuth 2.0 PKCE · No password stored</div>
+        <div class="config-row">
+          <label>Your Spotify Artist ID:</label>
+          <input type="text" id="spotify-artist-id-input" placeholder="e.g. 0TnOYISbd1XYRBk9myaseg" oninput="saveSpotifyId(this.value)" />
+          <button class="btn-mini" onclick="loadSpotifyArtistId()">Load Saved</button>
+        </div>
+      </div>
+
+      <!-- Connected State -->
+      <div class="data-panel" id="spotify-data" style="display:none">
+        <div class="kpi-row">
+          <div class="kpi-block kpi-large">
+            <div class="kpi-label">Monthly Listeners</div>
+            <div class="kpi-value" id="sp-listeners">—</div>
+            <div class="kpi-trend" id="sp-listener-trend"></div>
+          </div>
+          <div class="kpi-block kpi-large">
+            <div class="kpi-label">Followers</div>
+            <div class="kpi-value" id="sp-followers">—</div>
+          </div>
+          <div class="kpi-block">
+            <div class="kpi-label">Popularity Score</div>
+            <div class="kpi-value kpi-sm" id="sp-popularity">—</div>
+            <div class="kpi-sub">/ 100</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="detail-row">
+          <div class="detail-block">
+            <div class="detail-label">Top Track</div>
+            <div class="detail-value" id="sp-top-track">—</div>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label">Artist Name</div>
+            <div class="detail-value" id="sp-artist-name">—</div>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label">Genres</div>
+            <div class="detail-value detail-tags" id="sp-genres">—</div>
+          </div>
+        </div>
+
+        <div class="stream-note-box">
+          <span class="note-icon">ℹ</span>
+          <div>
+            <strong>Stream Counts:</strong> Spotify does not expose per-artist stream totals via public API. Cumulative streams are only available inside <a href="https://artists.spotify.com" target="_blank">Spotify for Artists</a> (browser, delayed ~24h). This dashboard shows Followers &amp; Popularity Score from the live API.
+          </div>
+        </div>
+
+        <div class="manual-streams-row">
+          <label>Manual Stream Count (from S4A):</label>
+          <input type="text" id="sp-manual-streams" placeholder="Paste latest count from Spotify for Artists" oninput="updateManualStream('spotify', this.value)" />
+          <span class="manual-tag">Manual / Daily</span>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <span class="status-dot" id="spotify-status-dot"></span>
+        <span id="spotify-status-label">Not connected</span>
+        <span class="footer-ts" id="spotify-ts"></span>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!--  APPLE MUSIC — SECONDARY PANEL                               -->
+    <!-- ============================================================ -->
+    <section class="platform-card apple-card card-secondary" id="apple-panel">
+      <div class="card-header">
+        <div class="platform-badge apple-badge">
+          <svg width="16" height="16" viewBox="0 0 814 1000" fill="currentColor"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 327.3 44.2 325.5 33.8 309.8c-20.7-32.7-34.5-71-34.5-108.5 0-57.2 22.1-138.6 97.5-204.3C137.1 25.3 192.3 1.2 246 1.2 316 1.2 360.4 38.2 410.8 38.2c49.1 0 79.1-39.5 170.3-39.5 42.1 0 108.2 10.2 152 54.2z"/></svg>
+          Apple Music for Artists
+        </div>
+        <div class="freshness-tag freshness-daily" id="apple-freshness-tag">Daily</div>
+      </div>
+
+      <div class="auth-gate" id="apple-auth-gate">
+        <div class="auth-icon">🍎</div>
+        <div class="auth-title">Apple Music Analytics API</div>
+        <div class="auth-desc">The Music Analytics API requires <strong>250,000+ plays/month</strong> threshold AND a key generated via iTunes Connect. This is a label-tier API — individual artists use the browser dashboard only.</div>
+        <a href="https://artists.apple.com" target="_blank" class="btn-connect apple-btn-connect">Open Apple Music for Artists ↗</a>
+        <div class="auth-note">iTunes Connect → Users and Access → Keys tab → Generate API key</div>
+
+        <div class="config-row">
+          <label>Apple Analytics API Key (if eligible):</label>
+          <input type="text" id="apple-api-key-input" placeholder="Paste your Apple Analytics API token" oninput="saveAppleKey(this.value)" />
+        </div>
+        <button class="btn-mini apple-load-btn" onclick="loadAppleData()">Try Load Data</button>
+      </div>
+
+      <div class="data-panel" id="apple-data" style="display:none">
+        <div class="kpi-row">
+          <div class="kpi-block kpi-large">
+            <div class="kpi-label">Total Plays</div>
+            <div class="kpi-value" id="ap-plays">—</div>
+          </div>
+          <div class="kpi-block kpi-large">
+            <div class="kpi-label">Unique Listeners</div>
+            <div class="kpi-value" id="ap-listeners">—</div>
+          </div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-block">
+            <div class="detail-label">Top Track</div>
+            <div class="detail-value" id="ap-top-track">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CSV Import fallback -->
+      <div class="import-section" id="apple-import">
+        <div class="import-title">📂 Import Apple Analytics Export</div>
+        <div class="import-desc">Export from Apple Music for Artists → Trends → Download CSV, then drop here.</div>
+        <div class="drop-zone" id="apple-drop-zone" ondragover="event.preventDefault()" ondrop="handleCSVDrop(event,'apple')">
+          <input type="file" id="apple-csv-input" accept=".csv,.txt" onchange="handleCSVFile(event,'apple')" style="display:none" />
+          <button class="btn-import" onclick="document.getElementById('apple-csv-input').click()">Choose CSV File</button>
+          <span class="drop-hint">or drag &amp; drop</span>
+        </div>
+        <div class="import-result" id="apple-import-result"></div>
+      </div>
+
+      <!-- Manual Input -->
+      <div class="manual-input-section">
+        <div class="manual-title">✏️ Manual Entry</div>
+        <div class="manual-fields">
+          <div class="manual-field">
+            <label>Total Plays</label>
+            <input type="number" id="ap-manual-plays" placeholder="0" oninput="updateManual('apple','plays',this.value)" />
+          </div>
+          <div class="manual-field">
+            <label>Listeners</label>
+            <input type="number" id="ap-manual-listeners" placeholder="0" oninput="updateManual('apple','listeners',this.value)" />
+          </div>
+          <div class="manual-field">
+            <label>Top Track</label>
+            <input type="text" id="ap-manual-track" placeholder="Track name" oninput="updateManual('apple','top_track',this.value)" />
+          </div>
+        </div>
+        <button class="btn-mini" onclick="applyManualApple()">Apply</button>
+      </div>
+
+      <div class="card-footer">
+        <span class="status-dot status-limited" id="apple-status-dot"></span>
+        <span id="apple-status-label">Browser / Manual import only</span>
+        <span class="footer-ts" id="apple-ts"></span>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!--  SOUNDCLOUD — SECONDARY PANEL                                -->
+    <!-- ============================================================ -->
+    <section class="platform-card sc-card card-tertiary" id="sc-panel">
+      <div class="card-header">
+        <div class="platform-badge sc-badge">
+          <svg width="16" height="16" viewBox="0 0 56 56" fill="currentColor"><path d="M1.5 34.5c-.2 1.1.6 2.1 1.8 2.1s2.1-.9 2.2-2.1l.5-4.4-.5-5.2C5.4 23.7 4.6 23 3.7 23c-1.2 0-2.1 1-1.9 2.2l.4 4.9-.7 4.4zm6.5 2.3c-.1 1.3 1 2.4 2.3 2.4 1.3 0 2.3-1.1 2.3-2.4l.4-6.7-.4-8.2c0-1.3-1-2.4-2.3-2.4-1.3 0-2.3 1.1-2.3 2.4l-.3 8.2.3 6.7zm6.8 1.5c0 1.6 1.2 2.8 2.8 2.8 1.6 0 2.8-1.3 2.8-2.8l.3-8.2-.3-10.2c0-1.6-1.2-2.8-2.8-2.8-1.6 0-2.8 1.2-2.8 2.8l-.2 10.2.2 8.2zm6.8 1.2c0 1.7 1.4 3.1 3.2 3.1 1.7 0 3.2-1.4 3.2-3.1V20.3c0-1.7-1.4-3.1-3.2-3.1-1.7 0-3.2 1.4-3.2 3.1v19.2zm6.9 2.2h18.8C52.5 41.7 56 38.2 56 33.8c0-4.3-3.5-7.8-7.8-7.8-.6 0-1.3.1-1.9.2C45.6 18.6 39.4 13 31.9 13c-1.6 0-3.2.3-4.7.9-.6.2-1 .8-1 1.4v24.9c-.1 1.8 1.3 3.3 3.1 3.4z"/></svg>
+          SoundCloud
+        </div>
+        <div class="freshness-tag freshness-nearrt" id="sc-freshness-tag">Near Real-Time</div>
+      </div>
+
+      <div class="auth-gate" id="sc-auth-gate">
+        <div class="auth-icon">🔊</div>
+        <div class="auth-title">Connect SoundCloud</div>
+        <div class="auth-desc">SoundCloud's public API provides follower count and track metadata. Detailed play analytics require Pro/Pro Unlimited and are browser-only. This connector fetches public stats via the SC API.</div>
+        <div class="config-row">
+          <label>SoundCloud Username / Permalink:</label>
+          <input type="text" id="sc-username-input" placeholder="e.g. o-sonix" oninput="saveSCUsername(this.value)" />
+        </div>
+        <div class="config-row">
+          <label>SoundCloud Client ID:</label>
+          <input type="text" id="sc-client-id-input" placeholder="From developers.soundcloud.com" oninput="saveSCClientId(this.value)" />
+        </div>
+        <button class="btn-connect sc-btn-connect" onclick="soundcloudConnect()">Fetch SC Data</button>
+        <div class="auth-note">Public API · No login required for public profile data</div>
+      </div>
+
+      <div class="data-panel" id="sc-data" style="display:none">
+        <div class="kpi-row">
+          <div class="kpi-block kpi-large">
+            <div class="kpi-label">Followers</div>
+            <div class="kpi-value" id="sc-followers">—</div>
+          </div>
+          <div class="kpi-block kpi-large">
+            <div class="kpi-label">Track Count</div>
+            <div class="kpi-value" id="sc-track-count">—</div>
+          </div>
+          <div class="kpi-block">
+            <div class="kpi-label">Plays (public)</div>
+            <div class="kpi-value kpi-sm" id="sc-plays">—</div>
+          </div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-block">
+            <div class="detail-label">Top Track</div>
+            <div class="detail-value" id="sc-top-track">—</div>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label">City</div>
+            <div class="detail-value" id="sc-city">—</div>
+          </div>
+        </div>
+        <div class="stream-note-box">
+          <span class="note-icon">ℹ</span>
+          Detailed play counts per track require SoundCloud API access. Public profile shows aggregate plays only.
+        </div>
+      </div>
+
+      <!-- Manual fallback -->
+      <div class="manual-input-section">
+        <div class="manual-title">✏️ Manual Entry</div>
+        <div class="manual-fields">
+          <div class="manual-field">
+            <label>Total Plays</label>
+            <input type="number" id="sc-manual-plays" placeholder="0" />
+          </div>
+          <div class="manual-field">
+            <label>Followers</label>
+            <input type="number" id="sc-manual-followers" placeholder="0" />
+          </div>
+          <div class="manual-field">
+            <label>Top Track</label>
+            <input type="text" id="sc-manual-track" placeholder="Track name" />
+          </div>
+        </div>
+        <button class="btn-mini" onclick="applyManualSC()">Apply</button>
+      </div>
+
+      <div class="card-footer">
+        <span class="status-dot status-limited" id="sc-status-dot"></span>
+        <span id="sc-status-label">Not connected</span>
+        <span class="footer-ts" id="sc-ts"></span>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!--  CHARTMETRIC — STUB PANEL                                    -->
+    <!-- ============================================================ -->
+    <section class="platform-card cm-card card-tertiary" id="cm-panel">
+      <div class="card-header">
+        <div class="platform-badge cm-badge">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h18v18H3V3zm2 2v14h14V5H5zm2 2h2v10H7V7zm4 3h2v7h-2v-7zm4-2h2v9h-2V8z"/></svg>
+          Chartmetric
+        </div>
+        <div class="freshness-tag freshness-daily" id="cm-freshness-tag">Daily</div>
+      </div>
+
+      <div id="cm-auth-gate" style="padding: 16px 20px 0;">
+        <div class="stream-note-box" style="margin-bottom:0">
+          <span class="note-icon">ℹ</span>
+          <div>Browser-only access. Enter data manually from <a href="https://chartmetric.com" target="_blank">chartmetric.com</a> or import a CSV export. Updated daily.</div>
+        </div>
+      </div>
+
+      <div class="data-panel" id="cm-data" style="display:none">
+        <div class="kpi-row">
+          <div class="kpi-block">
+            <div class="kpi-label">CM Score</div>
+            <div class="kpi-value kpi-sm" id="cm-score">—</div>
+          </div>
+          <div class="kpi-block">
+            <div class="kpi-label">Spotify Streams (CM)</div>
+            <div class="kpi-value kpi-sm" id="cm-sp-streams">—</div>
+          </div>
+          <div class="kpi-block">
+            <div class="kpi-label">Cross-Platform Rank</div>
+            <div class="kpi-value kpi-sm" id="cm-rank">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CSV Import -->
+      <div class="import-section">
+        <div class="import-title">📂 Import Chartmetric Export</div>
+        <div class="import-desc">In Chartmetric → Artist page → Export CSV, then drop here.</div>
+        <div class="drop-zone" id="cm-drop-zone" ondragover="event.preventDefault()" ondrop="handleCSVDrop(event,'chartmetric')">
+          <input type="file" id="cm-csv-input" accept=".csv,.txt" onchange="handleCSVFile(event,'chartmetric')" style="display:none" />
+          <button class="btn-import" onclick="document.getElementById('cm-csv-input').click()">Choose CSV File</button>
+          <span class="drop-hint">or drag &amp; drop</span>
+        </div>
+        <div class="import-result" id="cm-import-result"></div>
+      </div>
+
+      <!-- Manual Entry — primary action for CM panel -->
+      <div class="manual-input-section" style="border-top:none; padding-top:16px">
+        <div class="manual-title" style="font-size:0.9rem; margin-bottom:14px">Enter from chartmetric.com</div>
+        <div class="manual-fields">
+          <div class="manual-field">
+            <label>CM Score</label>
+            <input type="number" id="cm-manual-score" placeholder="0–100" />
+          </div>
+          <div class="manual-field">
+            <label>Spotify Streams</label>
+            <input type="number" id="cm-manual-streams" placeholder="0" />
+          </div>
+          <div class="manual-field">
+            <label>Top Track</label>
+            <input type="text" id="cm-manual-track" placeholder="Track name" />
+          </div>
+        </div>
+        <button class="btn-mini" style="background:#4a9eff;color:#fff;border-color:#4a9eff" onclick="applyManualCM()">Apply</button>
+      </div>
+
+      <div class="card-footer">
+        <span class="status-dot status-stub" id="cm-status-dot"></span>
+        <span id="cm-status-label">Manual entry · Daily</span>
+        <span class="footer-ts" id="cm-ts"></span>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!--  LIVE SIGNALS SECTION                                        -->
+    <!-- ============================================================ -->
+    <section class="full-width-section live-signals-section">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="section-icon live-icon">⚡</span>
+          Live Signals
+        </div>
+        <div class="section-sub">Near real-time or embed-based signals only</div>
+      </div>
+      <div class="live-signals-grid">
+        <div class="live-signal-card" id="signal-spotify-followers">
+          <div class="signal-platform">Spotify</div>
+          <div class="signal-label">Followers (Live API)</div>
+          <div class="signal-value" id="live-sp-followers">—</div>
+          <div class="signal-freshness">Live · API</div>
+        </div>
+        <div class="live-signal-card" id="signal-spotify-popularity">
+          <div class="signal-platform">Spotify</div>
+          <div class="signal-label">Popularity Score</div>
+          <div class="signal-value" id="live-sp-popularity">—</div>
+          <div class="signal-freshness">Live · API</div>
+        </div>
+        <div class="live-signal-card sc-signal" id="signal-sc-followers">
+          <div class="signal-platform">SoundCloud</div>
+          <div class="signal-label">Followers</div>
+          <div class="signal-value" id="live-sc-followers">—</div>
+          <div class="signal-freshness">Near Real-Time · API</div>
+        </div>
+        <div class="live-signal-card no-signal-card">
+          <div class="signal-platform">Apple Music</div>
+          <div class="signal-label">Listening Now</div>
+          <div class="signal-value signal-na">N/A</div>
+          <div class="signal-freshness">Not available via API</div>
+        </div>
+        <div class="live-signal-card no-signal-card">
+          <div class="signal-platform">Chartmetric</div>
+          <div class="signal-label">Live Score</div>
+          <div class="signal-value signal-na">N/A</div>
+          <div class="signal-freshness">Manual entry · Daily</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!--  DAILY TOTALS SECTION                                        -->
+    <!-- ============================================================ -->
+    <section class="full-width-section daily-totals-section">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="section-icon">📅</span>
+          Daily Totals
+        </div>
+        <div class="section-sub">Official delayed metrics — typically 24–48h lag</div>
+      </div>
+      <div class="daily-grid">
+        <div class="daily-card">
+          <div class="daily-platform">Spotify for Artists</div>
+          <div class="daily-metric">
+            <div class="daily-label">Total Streams (manual)</div>
+            <div class="daily-value" id="daily-sp-streams">—</div>
+          </div>
+          <div class="daily-metric">
+            <div class="daily-label">Monthly Listeners (S4A)</div>
+            <div class="daily-value" id="daily-sp-listeners">—</div>
+          </div>
+          <div class="daily-tag">Delayed ~24h · Manual Entry</div>
+        </div>
+        <div class="daily-card">
+          <div class="daily-platform">Apple Music for Artists</div>
+          <div class="daily-metric">
+            <div class="daily-label">Total Plays</div>
+            <div class="daily-value" id="daily-ap-plays">—</div>
+          </div>
+          <div class="daily-metric">
+            <div class="daily-label">Listeners</div>
+            <div class="daily-value" id="daily-ap-listeners">—</div>
+          </div>
+          <div class="daily-tag">Updated multiple times/day · Manual / CSV</div>
+        </div>
+        <div class="daily-card">
+          <div class="daily-platform">SoundCloud</div>
+          <div class="daily-metric">
+            <div class="daily-label">Total Plays</div>
+            <div class="daily-value" id="daily-sc-plays">—</div>
+          </div>
+          <div class="daily-metric">
+            <div class="daily-label">Followers</div>
+            <div class="daily-value" id="daily-sc-followers">—</div>
+          </div>
+          <div class="daily-tag">Near Real-Time · Public API</div>
+        </div>
+        <div class="daily-card">
+          <div class="daily-platform">Chartmetric</div>
+          <div class="daily-metric">
+            <div class="daily-label">CM Score</div>
+            <div class="daily-value" id="daily-cm-score">—</div>
+          </div>
+          <div class="daily-metric">
+            <div class="daily-label">SP Streams (CM tracked)</div>
+            <div class="daily-value" id="daily-cm-streams">—</div>
+          </div>
+          <div class="daily-tag">Daily · Manual / $350 API</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!--  SOURCE HEALTH SECTION                                       -->
+    <!-- ============================================================ -->
+    <section class="full-width-section source-health-section">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="section-icon">🔌</span>
+          Source Health
+        </div>
+        <div class="section-sub">Connector status &amp; data freshness overview</div>
+      </div>
+      <div class="health-table-wrapper">
+        <table class="health-table">
+          <thead>
+            <tr>
+              <th>Platform</th>
+              <th>Access Type</th>
+              <th>Freshness</th>
+              <th>Status</th>
+              <th>Action Required</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="health-table-body">
+            <tr>
+              <td><span class="ht-platform ht-spotify">Spotify for Artists</span></td>
+              <td>Direct API (partial)</td>
+              <td><span class="ft-live">Live</span></td>
+              <td><span class="hs-tag hs-needs-auth" id="ht-sp-status">Needs Auth</span></td>
+              <td>Connect Spotify OAuth above</td>
+              <td>Followers &amp; Popularity = live. Streams = not in API. Monthly listeners = S4A browser only (~24h delay).</td>
+            </tr>
+            <tr>
+              <td><span class="ht-platform ht-apple">Apple Music for Artists</span></td>
+              <td>API (label-tier only) / Browser</td>
+              <td><span class="ft-daily">Daily (multi/day)</span></td>
+              <td><span class="hs-tag hs-limited" id="ht-ap-status">Limited</span></td>
+              <td>250k+ plays/month required for API. Manual/CSV otherwise.</td>
+              <td>Music Analytics API needs iTunes Connect key. Most indie artists: browser + CSV export.</td>
+            </tr>
+            <tr>
+              <td><span class="ht-platform ht-sc">SoundCloud</span></td>
+              <td>Direct API (public stats)</td>
+              <td><span class="ft-nearrt">Near Real-Time</span></td>
+              <td><span class="hs-tag hs-needs-auth" id="ht-sc-status">Needs Client ID</span></td>
+              <td>Register app at developers.soundcloud.com → get Client ID</td>
+              <td>Public follower + track count via API. Detailed play analytics = browser Pro only.</td>
+            </tr>
+            <tr>
+              <td><span class="ht-platform ht-cm">Chartmetric</span></td>
+              <td>Browser only / Manual</td>
+              <td><span class="ft-daily">Daily</span></td>
+              <td><span class="hs-tag hs-limited" id="ht-cm-status">Manual</span></td>
+              <td>Copy metrics from chartmetric.com into the manual entry fields, or drag in a CSV export</td>
+              <td>No API access on current plan. Manual entry takes ~30 seconds. Best used as a daily scorecard check.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!--  NORMALIZED DATA EXPORT                                      -->
+    <!-- ============================================================ -->
+    <section class="full-width-section export-section">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="section-icon">📤</span>
+          Normalized Data Export
+        </div>
+        <div class="section-sub">Unified schema export: platform / artist / metric / freshness / timestamp</div>
+      </div>
+      <div class="export-actions">
+        <button class="btn-export" onclick="exportJSON()">Export JSON</button>
+        <button class="btn-export" onclick="exportCSV()">Export CSV</button>
+        <button class="btn-export btn-copy" onclick="copySchema()">Copy Schema</button>
+      </div>
+      <pre class="schema-preview" id="schema-preview">Loading schema preview…</pre>
+    </section>
+
+  </main>
+
+  <!-- ===== CONFIG DRAWER ===== -->
+  <div class="config-drawer" id="config-drawer" style="display:none">
+    <div class="config-inner">
+      <div class="config-header">
+        <div class="config-title">Dashboard Configuration</div>
+        <button onclick="toggleConfig()" class="config-close">✕</button>
+      </div>
+      <div class="config-body">
+        <div class="config-section">
+          <div class="config-section-title">Spotify</div>
+          <div class="config-field">
+            <label>Client ID (from developer.spotify.com)</label>
+            <input type="text" id="cfg-spotify-client-id" placeholder="Your Spotify app Client ID" />
+          </div>
+          <div class="config-field">
+            <label>Artist ID</label>
+            <input type="text" id="cfg-spotify-artist-id" placeholder="Spotify Artist ID" />
+          </div>
+        </div>
+        <div class="config-section">
+          <div class="config-section-title">SoundCloud</div>
+          <div class="config-field">
+            <label>Client ID</label>
+            <input type="text" id="cfg-sc-client-id" placeholder="SoundCloud app Client ID" />
+          </div>
+          <div class="config-field">
+            <label>Username/Permalink</label>
+            <input type="text" id="cfg-sc-username" placeholder="your-soundcloud-username" />
+          </div>
+        </div>
+        <button class="btn-connect" onclick="saveConfig()">Save Configuration</button>
+      </div>
+    </div>
+  </div>
+  <button class="config-fab" onclick="toggleConfig()" title="Configuration">⚙</button>
+
+  <!-- Scripts -->
+
+<script>
+// ===== STORAGE SHIM =====
+/**
+ * In-memory storage — works in all environments including iframes
+ * Data persists for the browser session only (no cross-session persistence in this mode)
+ */
+const _memStore   = {
+  'sp_client_id': 'd03aa16cd30f417c9c58bd4c44e62736',
+  'sp_artist_id': '3Bp8tyakzaSDKGrXypcVFm'
+};
+const _memSession = {};
+
+const safeStorage = {
+  getItem(key)       { return _memStore[key] ?? null; },
+  setItem(key, val)  { _memStore[key] = String(val); },
+  removeItem(key)    { delete _memStore[key]; }
+};
+
+const safeSession = {
+  getItem(key)       { return _memSession[key] ?? null; },
+  setItem(key, val)  { _memSession[key] = String(val); },
+  removeItem(key)    { delete _memSession[key]; }
+};
+
+
+// ===== SCHEMA =====
+/**
+ * NORMALIZED ANALYTICS SCHEMA
+ * O-Sonix Artist Analytics Dashboard
+ * 
+ * All platform data is normalized into this common structure
+ * before being rendered on the dashboard.
+ */
+
+const AnalyticsSchema = {
+  version: '1.0',
+  platforms: ['spotify', 'apple', 'soundcloud', 'chartmetric'],
+
+  /**
+   * Create a normalized record for any platform.
+   * @param {Object} opts
+   * @returns {Object} Normalized analytics record
+   */
+  create(opts = {}) {
+    return {
+      platform:         opts.platform        || 'unknown',
+      artist_name:      opts.artist_name     || '',
+      metric_type:      opts.metric_type     || 'aggregate',
+      total_streams:    opts.total_streams   ?? null,
+      current_listeners:opts.current_listeners ?? null,
+      followers:        opts.followers       ?? null,
+      top_track:        opts.top_track       || null,
+      trend_value:      opts.trend_value     ?? null,      // positive/negative number
+      trend_direction:  opts.trend_direction || null,      // 'up' | 'down' | 'flat'
+      freshness:        opts.freshness       || 'unknown', // 'live' | 'near-real-time' | 'daily' | 'delayed' | 'manual'
+      last_updated:     opts.last_updated    || new Date().toISOString(),
+      source_status:    opts.source_status   || 'unknown', // 'connected' | 'limited' | 'manual' | 'stub' | 'error'
+      raw:              opts.raw             || {},        // original API response
+    };
+  },
+
+  /** Format a number for display */
+  formatNumber(n) {
+    if (n === null || n === undefined) return '—';
+    if (typeof n === 'string' && n.trim() !== '' && !isNaN(n)) n = Number(n);
+    if (typeof n !== 'number') return n;
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+    if (n >= 1_000)     return (n / 1_000).toFixed(1) + 'K';
+    return n.toLocaleString();
+  },
+
+  /** Return freshness CSS class */
+  freshnessClass(freshness) {
+    const map = {
+      'live':           'freshness-live',
+      'near-real-time': 'freshness-nearrt',
+      'daily':          'freshness-daily',
+      'delayed':        'freshness-delayed',
+      'manual':         '',
+    };
+    return map[freshness] || '';
+  },
+
+  /** Return freshness label */
+  freshnessLabel(freshness) {
+    const map = {
+      'live':           'Live',
+      'near-real-time': 'Near Real-Time',
+      'daily':          'Daily',
+      'delayed':        'Delayed',
+      'manual':         'Manual',
+      'unknown':        '—',
+    };
+    return map[freshness] || freshness;
+  }
+};
+
+// Global state: holds normalized records for all platforms
+const DashboardState = {
+  records: {
+    spotify:     null,
+    apple:       null,
+    soundcloud:  null,
+    chartmetric: null,
+  },
+  credentials: {
+    spotify: {
+      client_id:   safeStorage.getItem('sp_client_id') || '',
+      artist_id:   safeStorage.getItem('sp_artist_id') || '',
+      access_token: null,
+      token_expiry: null,
+    },
+    soundcloud: {
+      client_id: safeStorage.getItem('sc_client_id') || '',
+      username:  safeStorage.getItem('sc_username')  || '',
+    },
+    apple: {
+      api_key: safeStorage.getItem('apple_api_key') || '',
+    },
+    chartmetric: {
+      token:     safeStorage.getItem('cm_token')     || '',
+      artist_id: safeStorage.getItem('cm_artist_id') || '',
+    }
+  },
+
+  set(platform, record) {
+    this.records[platform] = record;
+    this.persist(platform, record);
+  },
+
+  persist(platform, record) {
+    try {
+      safeStorage.setItem(`analytics_${platform}`, JSON.stringify(record));
+    } catch(e) {}
+  },
+
+  load() {
+    for (const p of ['spotify','apple','soundcloud','chartmetric']) {
+      const saved = safeStorage.getItem(`analytics_${p}`);
+      if (saved) {
+        try { this.records[p] = JSON.parse(saved); } catch(e) {}
+      }
+    }
+  },
+
+  toArray() {
+    return Object.values(this.records).filter(Boolean);
+  },
+
+  toCSV() {
+    const headers = [
+      'platform','artist_name','metric_type','total_streams',
+      'current_listeners','followers','top_track','trend_value',
+      'trend_direction','freshness','last_updated','source_status'
+    ];
+    const rows = this.toArray().map(r =>
+      headers.map(h => JSON.stringify(r[h] ?? '')).join(',')
+    );
+    return [headers.join(','), ...rows].join('\n');
+  },
+
+  toJSON() {
+    return JSON.stringify(this.toArray(), null, 2);
+  }
+};
+
+// Load any persisted state on startup
+DashboardState.load();
+
+
+// ===== SPOTIFY CONNECTOR =====
+/**
+ * SPOTIFY CONNECTOR
+ * ==================
+ * Uses Spotify Web API with OAuth 2.0 PKCE (no server required).
+ *
+ * WHAT THIS PROVIDES (via public API):
+ *   ✅ Followers (live)
+ *   ✅ Popularity score (live, 0-100)
+ *   ✅ Artist name, genres, images
+ *   ✅ Top tracks (up to 10)
+ *   ❌ Stream counts — NOT available in public API
+ *   ❌ Monthly listeners — NOT in public API (S4A browser only, ~24h lag)
+ *
+ * SETUP REQUIRED:
+ *   1. Go to https://developer.spotify.com/dashboard
+ *   2. Create an app → note Client ID
+ *   3. Add redirect URI: the URL of this dashboard page
+ *   4. Enter Client ID and Artist ID in the config below
+ *
+ * FRESHNESS: Live (real-time API call each refresh)
+ */
+
+const SpotifyConnector = {
+  name: 'spotify',
+  CLIENT_ID: '',   // set via config / localStorage
+  REDIRECT_URI: 'http://localhost:8080/osonix-analytics.html',
+  SCOPES: 'user-read-private',
+  API_BASE: 'https://api.spotify.com/v1',
+
+  // --- PKCE helpers ---
+  async generateCodeVerifier(length = 128) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+    const array = new Uint8Array(length);
+    crypto.getRandomValues(array);
+    return Array.from(array, b => chars[b % chars.length]).join('');
+  },
+
+  async generateCodeChallenge(verifier) {
+    const data = new TextEncoder().encode(verifier);
+    const digest = await crypto.subtle.digest('SHA-256', data);
+    return btoa(String.fromCharCode(...new Uint8Array(digest)))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  },
+
+  // --- Auth ---
+  async authorize() {
+    const clientId = DashboardState.credentials.spotify.client_id ||
+                     safeStorage.getItem('sp_client_id') || '';
+    if (!clientId) {
+      alert('Please enter your Spotify Client ID first.\n\nGet one at: https://developer.spotify.com/dashboard\nThen set it in the ⚙ Config or in the Client ID field.');
+      return;
+    }
+
+    const verifier   = await this.generateCodeVerifier();
+    const challenge  = await this.generateCodeChallenge(verifier);
+    safeSession.setItem('sp_code_verifier', verifier);
+
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id:     clientId,
+      scope:         this.SCOPES,
+      redirect_uri:  this.REDIRECT_URI,
+      code_challenge_method: 'S256',
+      code_challenge: challenge,
+    });
+
+    window.location = `https://accounts.spotify.com/authorize?${params}`;
+  },
+
+  async exchangeCode(code) {
+    const verifier = safeSession.getItem('sp_code_verifier');
+    const clientId = DashboardState.credentials.spotify.client_id ||
+                     safeStorage.getItem('sp_client_id') || '';
+
+    const body = new URLSearchParams({
+      grant_type:    'authorization_code',
+      code,
+      redirect_uri:  this.REDIRECT_URI,
+      client_id:     clientId,
+      code_verifier: verifier,
+    });
+
+    const res = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error_description || 'Token exchange failed');
+    }
+
+    const data = await res.json();
+    DashboardState.credentials.spotify.access_token = data.access_token;
+    DashboardState.credentials.spotify.token_expiry = Date.now() + (data.expires_in * 1000);
+    safeStorage.setItem('sp_access_token', data.access_token);
+    safeStorage.setItem('sp_token_expiry', DashboardState.credentials.spotify.token_expiry);
+    safeSession.removeItem('sp_code_verifier');
+    return data.access_token;
+  },
+
+  getToken() {
+    const token  = DashboardState.credentials.spotify.access_token ||
+                   safeStorage.getItem('sp_access_token');
+    const expiry = DashboardState.credentials.spotify.token_expiry ||
+                   parseInt(safeStorage.getItem('sp_token_expiry') || '0');
+    if (!token || Date.now() >= expiry) return null;
+    return token;
+  },
+
+  // --- Data fetch ---
+  async fetchArtist(artistId) {
+    const token = this.getToken();
+    if (!token) throw new Error('No valid Spotify token. Please connect first.');
+
+    const res = await fetch(`${this.API_BASE}/artists/${artistId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) {
+      if (res.status === 401) {
+        // Clear stale token
+        safeStorage.removeItem('sp_access_token');
+        throw new Error('Spotify token expired. Please reconnect.');
+      }
+      throw new Error(`Spotify API error: ${res.status}`);
+    }
+    return res.json();
+  },
+
+  async fetchTopTracks(artistId, market = 'US') {
+    const token = this.getToken();
+    if (!token) return null;
+    const res = await fetch(`${this.API_BASE}/artists/${artistId}/top-tracks?market=${market}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) return null;
+    return res.json();
+  },
+
+  // --- Main load ---
+  async load(artistId) {
+    if (!artistId) {
+      artistId = DashboardState.credentials.spotify.artist_id ||
+                 safeStorage.getItem('sp_artist_id');
+    }
+    if (!artistId) throw new Error('No Spotify Artist ID configured.');
+
+    setSpotifyStatus('loading', 'Loading…');
+
+    const [artistData, topTracksData] = await Promise.all([
+      this.fetchArtist(artistId),
+      this.fetchTopTracks(artistId),
+    ]);
+
+    const topTrack = topTracksData?.tracks?.[0]?.name || null;
+    const genres   = artistData.genres?.slice(0, 3).join(', ') || '—';
+
+    const record = AnalyticsSchema.create({
+      platform:         'spotify',
+      artist_name:      artistData.name,
+      metric_type:      'aggregate',
+      total_streams:    null,   // not in API
+      current_listeners: null,  // not in API
+      followers:        artistData.followers?.total ?? null,
+      top_track:        topTrack,
+      trend_value:      artistData.popularity ?? null,
+      trend_direction:  null,
+      freshness:        'live',
+      last_updated:     new Date().toISOString(),
+      source_status:    'connected',
+      raw: { artist: artistData, top_tracks: topTracksData?.tracks }
+    });
+
+    DashboardState.set('spotify', record);
+    renderSpotify(record, artistData, genres);
+    return record;
+  },
+
+  // --- Handle OAuth callback ---
+  async handleCallback() {
+    const params = new URLSearchParams(window.location.search);
+    const code   = params.get('code');
+    const error  = params.get('error');
+
+    if (error) {
+      setSpotifyStatus('error', `Auth error: ${error}`);
+      return false;
+    }
+    if (!code) return false;
+
+    // Clean the URL
+    window.history.replaceState({}, '', window.location.pathname);
+
+    try {
+      await this.exchangeCode(code);
+      return true;
+    } catch(e) {
+      setSpotifyStatus('error', e.message);
+      return false;
+    }
+  }
+};
+
+// ---------- DOM helpers ----------
+
+function setSpotifyStatus(state, label) {
+  const dot   = document.getElementById('spotify-status-dot');
+  const lbl   = document.getElementById('spotify-status-label');
+  const ts    = document.getElementById('spotify-ts');
+  if (dot) {
+    dot.className = 'status-dot';
+    if (state === 'connected') dot.classList.add('connected');
+    if (state === 'error')     dot.classList.add('status-err');
+  }
+  if (lbl) lbl.textContent = label;
+  if (ts)  ts.textContent  = state === 'connected' ? new Date().toLocaleTimeString() : '';
+
+  // Update health table
+  const htStatus = document.getElementById('ht-sp-status');
+  if (htStatus) {
+    const map = { connected: ['hs-connected','Connected'], loading: ['hs-needs-auth','Loading…'], error: ['hs-error','Error'] };
+    const [cls, text] = map[state] || ['hs-needs-auth','Needs Auth'];
+    htStatus.className = `hs-tag ${cls}`;
+    htStatus.textContent = text;
+  }
+}
+
+function renderSpotify(record, artistData, genres) {
+  const gate = document.getElementById('spotify-auth-gate');
+  const data = document.getElementById('spotify-data');
+  if (gate) gate.style.display = 'none';
+  if (data) { data.style.display = 'flex'; data.classList.add('fade-in'); }
+
+  // KPIs
+  el('sp-followers',   AnalyticsSchema.formatNumber(record.followers));
+  el('sp-popularity',  record.trend_value ?? '—');
+  el('sp-listeners',   '—');   // requires S4A browser
+
+  // Details
+  el('sp-top-track',   record.top_track || '—');
+  el('sp-artist-name', record.artist_name || '—');
+  el('sp-genres',      genres || '—');
+
+  // Live signals
+  el('live-sp-followers',   AnalyticsSchema.formatNumber(record.followers));
+  el('live-sp-popularity',  record.trend_value ?? '—');
+
+  // Freshness tag
+  const tag = document.getElementById('spotify-freshness-tag');
+  if (tag) {
+    tag.textContent = 'Live';
+    tag.className   = 'freshness-tag freshness-live';
+  }
+
+  // Timestamp
+  document.getElementById('spotify-ts').textContent = new Date().toLocaleTimeString();
+  document.getElementById('last-refresh').textContent = 'Last refresh: ' + new Date().toLocaleTimeString();
+
+  setSpotifyStatus('connected', `Connected · ${record.artist_name}`);
+  refreshSchemaPreview();
+}
+
+function el(id, val) {
+  const e = document.getElementById(id);
+  if (e) e.textContent = val;
+}
+
+// Called by Connect button
+async function spotifyConnect() {
+  // Read client ID from input if present
+  const input = document.getElementById('spotify-artist-id-input');
+  const cfgId = document.getElementById('cfg-spotify-client-id');
+  if (cfgId && cfgId.value) {
+    DashboardState.credentials.spotify.client_id = cfgId.value.trim();
+    safeStorage.setItem('sp_client_id', cfgId.value.trim());
+  }
+  await SpotifyConnector.authorize();
+}
+
+function saveSpotifyId(val) {
+  safeStorage.setItem('sp_artist_id', val.trim());
+  DashboardState.credentials.spotify.artist_id = val.trim();
+}
+
+function loadSpotifyArtistId() {
+  const saved = safeStorage.getItem('sp_artist_id');
+  const input = document.getElementById('spotify-artist-id-input');
+  if (saved && input) input.value = saved;
+}
+
+function updateManualStream(platform, val) {
+  const num = parseInt(val.replace(/[^0-9]/g,''), 10);
+  if (!isNaN(num)) {
+    const record = DashboardState.records[platform] || AnalyticsSchema.create({ platform, freshness: 'manual', source_status: 'manual' });
+    record.total_streams = num;
+    record.freshness     = 'manual';
+    record.last_updated  = new Date().toISOString();
+    DashboardState.set(platform, record);
+
+    el('daily-sp-streams', AnalyticsSchema.formatNumber(num));
+    refreshSchemaPreview();
+  }
+}
+
+
+// ===== APPLE CONNECTOR =====
+/**
+ * APPLE MUSIC FOR ARTISTS CONNECTOR
+ * ===================================
+ * Status: LIMITED / MANUAL IMPORT
+ *
+ * ACCESS REALITY CHECK:
+ * - The Music Analytics API requires 250,000+ plays/month (label-tier).
+ * - Individual artists access Apple Music for Artists at: https://artists.apple.com
+ * - Data in the browser is updated multiple times per day (not quite real-time).
+ * - The Apple Music Catalog API provides song/album metadata only — NOT streaming stats.
+ *
+ * WHAT THIS CONNECTOR DOES:
+ *   ✅ CSV import from Apple Music for Artists export
+ *   ✅ Manual entry
+ *   🔲 Music Analytics API (stub — requires iTunes Connect API key + 250k threshold)
+ *   ❌ Real-time streaming counts (not available outside browser)
+ *
+ * SETUP (if you meet the 250k+ threshold):
+ *   1. Go to https://itunesconnect.apple.com → Users and Access → Keys
+ *   2. Legal user must accept T&Cs
+ *   3. Click + to generate an API key
+ *   4. Paste token below or in the dashboard input
+ *
+ * FRESHNESS: Daily (updated multiple times/day per Apple docs)
+ */
+
+const AppleConnector = {
+  name: 'apple',
+  API_BASE: 'https://api.applemusicanalytics.apple.com/v1', // Hypothetical — requires partner credentials
+  
+  async loadWithAPIKey(apiKey, artistId) {
+    if (!apiKey) throw new Error('No Apple API key provided.');
+    // NOTE: The real Music Analytics API endpoint is accessed via Apple's provider portal.
+    // This stub shows the intended integration pattern.
+    // Actual implementation requires Apple's proprietary auth flow (JWT + Key ID).
+    throw new Error('Apple Music Analytics API requires iTunes Connect partner credentials (250k+ plays/month threshold). See dashboard for manual import instructions.');
+  },
+
+  /**
+   * Parse Apple Music for Artists CSV export.
+   * Export path: artists.apple.com → Trends → Date range → Download CSV
+   *
+   * Expected columns (Apple's format):
+   *   Date, Plays, Listeners, Shazams, Song Purchases, Album Purchases
+   * OR song-level:
+   *   Track Name, Total Plays, Total Listeners
+   */
+  parseCSV(csvText) {
+    const lines  = csvText.trim().split('\n').filter(l => l.trim());
+    if (lines.length < 2) throw new Error('CSV appears empty or invalid.');
+
+    const headers = lines[0].split(',').map(h => h.replace(/"/g,'').trim().toLowerCase());
+    const rows    = lines.slice(1).map(l => {
+      const vals = l.split(',').map(v => v.replace(/"/g,'').trim());
+      const obj  = {};
+      headers.forEach((h, i) => { obj[h] = vals[i] || ''; });
+      return obj;
+    });
+
+    // Try to find key metrics — Apple uses different column names depending on export type
+    let totalPlays     = 0;
+    let totalListeners = 0;
+    let topTrack       = null;
+    let maxTrackPlays  = 0;
+
+    rows.forEach(row => {
+      // Aggregate plays
+      const plays     = parseInt((row['plays'] || row['streams'] || row['total plays'] || '0').replace(/[^0-9]/g,'')) || 0;
+      const listeners = parseInt((row['listeners'] || row['unique listeners'] || row['total listeners'] || '0').replace(/[^0-9]/g,'')) || 0;
+      totalPlays     += plays;
+      totalListeners += listeners;
+
+      // Track top song
+      const trackName = row['content name'] || row['track name'] || row['song name'] || row['title'] || null;
+      if (trackName && plays > maxTrackPlays) {
+        maxTrackPlays = plays;
+        topTrack = trackName;
+      }
+    });
+
+    return {
+      total_plays:     totalPlays     || null,
+      total_listeners: totalListeners || null,
+      top_track:       topTrack,
+      row_count:       rows.length,
+      raw_headers:     headers,
+    };
+  },
+
+  applyCSVData(parsed) {
+    const record = AnalyticsSchema.create({
+      platform:          'apple',
+      artist_name:       '',
+      metric_type:       'aggregate',
+      total_streams:     parsed.total_plays,
+      current_listeners: parsed.total_listeners,
+      followers:         null,
+      top_track:         parsed.top_track,
+      freshness:         'daily',
+      source_status:     'manual',
+      last_updated:      new Date().toISOString(),
+    });
+    DashboardState.set('apple', record);
+    return record;
+  }
+};
+
+// ---------- DOM helpers ----------
+
+function saveAppleKey(val) {
+  safeStorage.setItem('apple_api_key', val.trim());
+  DashboardState.credentials.apple.api_key = val.trim();
+}
+
+async function loadAppleData() {
+  const key = document.getElementById('apple-api-key-input')?.value?.trim() ||
+              safeStorage.getItem('apple_api_key');
+  if (key) {
+    try {
+      await AppleConnector.loadWithAPIKey(key, null);
+    } catch(e) {
+      showAppleNote(e.message);
+    }
+  } else {
+    showAppleNote('No API key entered. Use CSV import or manual entry below.');
+  }
+}
+
+function showAppleNote(msg) {
+  const gate = document.getElementById('apple-auth-gate');
+  // Inject note inline
+  let note = document.getElementById('apple-api-note');
+  if (!note) {
+    note = document.createElement('div');
+    note.id = 'apple-api-note';
+    note.className = 'stream-note-box';
+    note.style.marginTop = '8px';
+    gate.appendChild(note);
+  }
+  note.innerHTML = `<span class="note-icon">ℹ</span><span>${msg}</span>`;
+}
+
+function handleCSVDrop(event, platform) {
+  event.preventDefault();
+  const file = event.dataTransfer?.files?.[0];
+  if (file) processCSVFile(file, platform);
+}
+
+function handleCSVFile(event, platform) {
+  const file = event.target.files?.[0];
+  if (file) processCSVFile(file, platform);
+}
+
+function processCSVFile(file, platform) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      if (platform === 'apple') {
+        const parsed = AppleConnector.parseCSV(e.target.result);
+        const record = AppleConnector.applyCSVData(parsed);
+        renderApple(record);
+        const resultEl = document.getElementById('apple-import-result');
+        if (resultEl) resultEl.textContent = `✓ Imported ${parsed.row_count} rows · ${AnalyticsSchema.formatNumber(parsed.total_plays)} plays`;
+      } else if (platform === 'chartmetric') {
+        parseChartmetricCSV(e.target.result);
+      }
+    } catch(err) {
+      const resultEl = document.getElementById(`${platform === 'apple' ? 'apple' : 'cm'}-import-result`);
+      if (resultEl) resultEl.textContent = `✗ Error: ${err.message}`;
+    }
+  };
+  reader.readAsText(file);
+}
+
+function renderApple(record) {
+  const fmt = AnalyticsSchema.formatNumber;
+  el('ap-plays',      fmt(record.total_streams));
+  el('ap-listeners',  fmt(record.current_listeners));
+  el('ap-top-track',  record.top_track || '—');
+
+  el('daily-ap-plays',     fmt(record.total_streams));
+  el('daily-ap-listeners', fmt(record.current_listeners));
+
+  const gate = document.getElementById('apple-auth-gate');
+  const data = document.getElementById('apple-data');
+  const imp  = document.getElementById('apple-import');
+  if (gate) gate.style.display = 'none';
+  if (data) { data.style.display = 'flex'; data.classList.add('fade-in'); }
+
+  const dot = document.getElementById('apple-status-dot');
+  const lbl = document.getElementById('apple-status-label');
+  const ts  = document.getElementById('apple-ts');
+  if (dot) { dot.className = 'status-dot status-limited'; }
+  if (lbl) lbl.textContent = record.source_status === 'manual' ? 'Manual import · Daily' : 'Connected';
+  if (ts)  ts.textContent  = new Date().toLocaleTimeString();
+
+  document.getElementById('last-refresh').textContent = 'Last refresh: ' + new Date().toLocaleTimeString();
+  refreshSchemaPreview();
+}
+
+function updateManual(platform, field, value) {
+  // Live update as user types — committed on Apply
+}
+
+function applyManualApple() {
+  const plays     = parseInt(document.getElementById('ap-manual-plays')?.value    || '0') || null;
+  const listeners = parseInt(document.getElementById('ap-manual-listeners')?.value || '0') || null;
+  const topTrack  = document.getElementById('ap-manual-track')?.value?.trim() || null;
+
+  const record = AnalyticsSchema.create({
+    platform:          'apple',
+    metric_type:       'aggregate',
+    total_streams:     plays,
+    current_listeners: listeners,
+    top_track:         topTrack,
+    freshness:         'manual',
+    source_status:     'manual',
+    last_updated:      new Date().toISOString(),
+  });
+
+  DashboardState.set('apple', record);
+  renderApple(record);
+
+  const imp = document.getElementById('apple-import');
+  if (imp) {
+    const result = imp.querySelector('.import-result') || document.createElement('div');
+    result.textContent = '✓ Manual data applied';
+  }
+}
+
+
+// ===== SOUNDCLOUD CONNECTOR =====
+/**
+ * SOUNDCLOUD CONNECTOR
+ * =====================
+ * Status: DIRECT API (public stats) — Near Real-Time
+ *
+ * WHAT THIS PROVIDES:
+ *   ✅ Follower count (live via public API)
+ *   ✅ Track count
+ *   ✅ Public play count (sum of all tracks)
+ *   ✅ Top track by playback count
+ *   ✅ Artist city/location
+ *   ❌ Detailed per-track analytics (requires SC Pro + browser only)
+ *   ❌ Plays breakdown by source/geography (Pro Unlimited browser only)
+ *
+ * SETUP:
+ *   1. Go to https://developers.soundcloud.com — register an app
+ *   2. Note your Client ID
+ *   3. Enter your SoundCloud username (permalink) + Client ID below
+ *
+ * NOTE on CORS:
+ *   SoundCloud's API does NOT support CORS for browser-based requests from unknown origins.
+ *   This connector uses a CORS proxy for local/file:// usage.
+ *   For production, deploy a lightweight proxy endpoint or use a server-side fetch.
+ *
+ * FRESHNESS: Near Real-Time (data typically updates within minutes on SC's end)
+ */
+
+const SoundCloudConnector = {
+  name: 'soundcloud',
+  API_BASE: 'https://api.soundcloud.com',
+  // Using allOrigins as CORS proxy for browser-direct access
+  CORS_PROXY: 'https://api.allorigins.win/get?url=',
+
+  async resolveUser(username, clientId) {
+    const url = `${this.API_BASE}/resolve?url=https://soundcloud.com/${username}&client_id=${clientId}`;
+    const proxyUrl = `${this.CORS_PROXY}${encodeURIComponent(url)}`;
+
+    const res = await fetch(proxyUrl);
+    if (!res.ok) throw new Error(`Proxy error: ${res.status}`);
+    const wrapper = await res.json();
+    const data    = JSON.parse(wrapper.contents);
+
+    if (data.errors || data.error) {
+      throw new Error(data.errors?.[0]?.error_message || data.error || 'SC API error');
+    }
+    return data;
+  },
+
+  async fetchTracks(userId, clientId, limit = 50) {
+    const url      = `${this.API_BASE}/users/${userId}/tracks?client_id=${clientId}&limit=${limit}`;
+    const proxyUrl = `${this.CORS_PROXY}${encodeURIComponent(url)}`;
+
+    const res  = await fetch(proxyUrl);
+    if (!res.ok) return [];
+    const wrap = await res.json();
+    try { return JSON.parse(wrap.contents) || []; }
+    catch(e) { return []; }
+  },
+
+  async load(username, clientId) {
+    if (!username) throw new Error('No SoundCloud username configured.');
+    if (!clientId) throw new Error('No SoundCloud Client ID configured. Register at developers.soundcloud.com.');
+
+    setSCStatus('loading', 'Loading…');
+
+    // Resolve user
+    const user = await this.resolveUser(username, clientId);
+
+    // Fetch tracks to get play counts
+    const tracks = await this.fetchTracks(user.id, clientId);
+
+    // Find top track by playback_count
+    let topTrack    = null;
+    let totalPlays  = 0;
+    let maxPlays    = 0;
+
+    tracks.forEach(t => {
+      const plays = t.playback_count || 0;
+      totalPlays += plays;
+      if (plays > maxPlays) {
+        maxPlays = plays;
+        topTrack = t.title;
+      }
+    });
+
+    const record = AnalyticsSchema.create({
+      platform:          'soundcloud',
+      artist_name:       user.username,
+      metric_type:       'aggregate',
+      total_streams:     user.public_favorites_count || totalPlays || null,
+      current_listeners: null,
+      followers:         user.followers_count ?? null,
+      top_track:         topTrack,
+      trend_value:       null,
+      trend_direction:   null,
+      freshness:         'near-real-time',
+      last_updated:      new Date().toISOString(),
+      source_status:     'connected',
+      raw: { user, tracks: tracks.slice(0, 10) }
+    });
+
+    DashboardState.set('soundcloud', record);
+    renderSoundCloud(record, user, totalPlays, tracks);
+    return record;
+  }
+};
+
+// ---------- DOM helpers ----------
+
+function saveSCUsername(val) {
+  safeStorage.setItem('sc_username', val.trim());
+  DashboardState.credentials.soundcloud.username = val.trim();
+}
+
+function saveSCClientId(val) {
+  safeStorage.setItem('sc_client_id', val.trim());
+  DashboardState.credentials.soundcloud.client_id = val.trim();
+}
+
+async function soundcloudConnect() {
+  const username = document.getElementById('sc-username-input')?.value?.trim()  ||
+                   safeStorage.getItem('sc_username');
+  const clientId = document.getElementById('sc-client-id-input')?.value?.trim() ||
+                   safeStorage.getItem('sc_client_id');
+
+  const errEl = document.getElementById('sc-status-label');
+
+  if (!username) {
+    if (errEl) errEl.textContent = 'Enter your SoundCloud username first.';
+    return;
+  }
+  if (!clientId) {
+    if (errEl) errEl.textContent = 'Enter your SoundCloud Client ID first (developers.soundcloud.com).';
+    return;
+  }
+
+  try {
+    await SoundCloudConnector.load(username, clientId);
+  } catch(e) {
+    setSCStatus('error', e.message);
+  }
+}
+
+function setSCStatus(state, label) {
+  const dot = document.getElementById('sc-status-dot');
+  const lbl = document.getElementById('sc-status-label');
+  const ts  = document.getElementById('sc-ts');
+  if (dot) {
+    dot.className = 'status-dot';
+    if (state === 'connected') dot.classList.add('connected');
+    if (state === 'error')     dot.classList.add('status-err');
+  }
+  if (lbl) lbl.textContent = label;
+  if (ts && state === 'connected') ts.textContent = new Date().toLocaleTimeString();
+
+  const htStatus = document.getElementById('ht-sc-status');
+  if (htStatus) {
+    const map = { connected: ['hs-connected','Connected'], loading: ['hs-needs-auth','Loading…'], error: ['hs-error','Error'] };
+    const [cls, text] = map[state] || ['hs-needs-auth','Needs Client ID'];
+    htStatus.className = `hs-tag ${cls}`;
+    htStatus.textContent = text;
+  }
+}
+
+function renderSoundCloud(record, user, totalPlays, tracks) {
+  const gate = document.getElementById('sc-auth-gate');
+  const data = document.getElementById('sc-data');
+  if (gate) gate.style.display = 'none';
+  if (data) { data.style.display = 'flex'; data.classList.add('fade-in'); }
+
+  const fmt = AnalyticsSchema.formatNumber;
+
+  el('sc-followers',   fmt(record.followers));
+  el('sc-track-count', fmt(user.track_count || tracks.length));
+  el('sc-plays',       fmt(totalPlays));
+  el('sc-top-track',   record.top_track || '—');
+  el('sc-city',        user.city || user.country || '—');
+
+  // Live signal
+  el('live-sc-followers', fmt(record.followers));
+
+  // Daily totals
+  el('daily-sc-plays',     fmt(totalPlays));
+  el('daily-sc-followers', fmt(record.followers));
+
+  // Freshness tag
+  const tag = document.getElementById('sc-freshness-tag');
+  if (tag) {
+    tag.textContent = 'Near Real-Time';
+    tag.className   = 'freshness-tag freshness-nearrt';
+  }
+
+  setSCStatus('connected', `Connected · ${user.username}`);
+  refreshSchemaPreview();
+}
+
+function applyManualSC() {
+  const plays     = parseInt(document.getElementById('sc-manual-plays')?.value     || '0') || null;
+  const followers = parseInt(document.getElementById('sc-manual-followers')?.value || '0') || null;
+  const topTrack  = document.getElementById('sc-manual-track')?.value?.trim() || null;
+
+  const record = AnalyticsSchema.create({
+    platform:        'soundcloud',
+    metric_type:     'aggregate',
+    total_streams:   plays,
+    followers,
+    top_track:       topTrack,
+    freshness:       'manual',
+    source_status:   'manual',
+    last_updated:    new Date().toISOString(),
+  });
+
+  DashboardState.set('soundcloud', record);
+
+  el('sc-followers',       AnalyticsSchema.formatNumber(followers));
+  el('sc-plays',           AnalyticsSchema.formatNumber(plays));
+  el('sc-top-track',       topTrack || '—');
+  el('live-sc-followers',  AnalyticsSchema.formatNumber(followers));
+  el('daily-sc-plays',     AnalyticsSchema.formatNumber(plays));
+  el('daily-sc-followers', AnalyticsSchema.formatNumber(followers));
+
+  const gate = document.getElementById('sc-auth-gate');
+  const data = document.getElementById('sc-data');
+  if (gate) gate.style.display = 'none';
+  if (data) { data.style.display = 'flex'; }
+
+  setSCStatus('connected', 'Manual entry applied');
+  refreshSchemaPreview();
+}
+
+
+// ===== CHARTMETRIC CONNECTOR =====
+/**
+ * CHARTMETRIC CONNECTOR
+ * ======================
+ * Status: STUB — Manual Import or $350/month Developer API
+ *
+ * ACCESS REALITY CHECK:
+ * - Free plan: 1 artist, limited dashboard views, NO API.
+ * - Artist plan ($10/mo): browser dashboard only, NO API.
+ * - Premium plan ($140/mo): browser dashboard, NO API.
+ * - Developer API: starts at $350/month — provides full programmatic access.
+ *
+ * WHAT THE API PROVIDES (if subscribed at $350/mo):
+ *   ✅ Cross-platform stream totals (Spotify, Apple, etc.)
+ *   ✅ CM Score (artist momentum metric 0-100)
+ *   ✅ Spotify monthly listeners, followers
+ *   ✅ Playlist tracking
+ *   ✅ Social audience analytics
+ *   ✅ Historical data
+ *
+ * THIS CONNECTOR:
+ *   🔲 API stub — shows integration pattern if you upgrade
+ *   ✅ CSV import from Chartmetric browser export
+ *   ✅ Manual entry fallback
+ *
+ * FRESHNESS: Daily (CM updates data 1x per day for most metrics)
+ */
+
+const ChartmetricConnector = {
+  name: 'chartmetric',
+  API_BASE: 'https://api.chartmetric.com/api',
+
+  async authenticate(token) {
+    // CM uses a refresh token flow — token is obtained from chartmetric.com
+    const res = await fetch(`${this.API_BASE}/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshtoken: token })
+    });
+    if (!res.ok) throw new Error(`Chartmetric auth failed: ${res.status}`);
+    const data = await res.json();
+    return data.token;
+  },
+
+  async fetchArtist(accessToken, artistId) {
+    const res = await fetch(`${this.API_BASE}/artist/${artistId}`, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+    if (!res.ok) throw new Error(`Chartmetric API: ${res.status}`);
+    return res.json();
+  },
+
+  async load(refreshToken, artistId) {
+    if (!refreshToken) throw new Error('No Chartmetric API token. Developer plan ($350/mo) required.');
+    if (!artistId)     throw new Error('No Chartmetric Artist ID configured.');
+
+    setCMStatus('loading', 'Loading…');
+
+    const accessToken = await this.authenticate(refreshToken);
+    const data = await this.fetchArtist(accessToken, artistId);
+
+    const sp = data?.data?.spotify_monthly_listeners;
+    const score = data?.data?.cm_artist_score;
+    const name  = data?.data?.name || '';
+
+    const record = AnalyticsSchema.create({
+      platform:          'chartmetric',
+      artist_name:       name,
+      metric_type:       'cross-platform',
+      total_streams:     data?.data?.sp_streams_total || null,
+      current_listeners: sp || null,
+      followers:         data?.data?.sp_followers || null,
+      top_track:         null,
+      trend_value:       score,
+      trend_direction:   null,
+      freshness:         'daily',
+      source_status:     'connected',
+      last_updated:      new Date().toISOString(),
+      raw: data?.data,
+    });
+
+    DashboardState.set('chartmetric', record);
+    renderChartmetric(record);
+    return record;
+  },
+
+  /**
+   * Parse Chartmetric CSV export.
+   * CM exports vary by what you download — this handles common formats.
+   */
+  parseCSV(csvText) {
+    const lines   = csvText.trim().split('\n').filter(l => l.trim());
+    if (lines.length < 2) throw new Error('CSV appears empty.');
+    const headers = lines[0].split(',').map(h => h.replace(/"/g,'').trim().toLowerCase());
+    const rows    = lines.slice(1).map(l => {
+      const vals = l.split(',').map(v => v.replace(/"/g,'').trim());
+      const obj  = {};
+      headers.forEach((h, i) => { obj[h] = vals[i] || ''; });
+      return obj;
+    });
+
+    // Try to extract known CM fields
+    const first   = rows[0] || {};
+    const score   = parseFloat(first['cm score'] || first['chartmetric score'] || '') || null;
+    const streams = parseInt((first['spotify streams'] || first['total streams'] || '').replace(/[^0-9]/g,'')) || null;
+    const listeners = parseInt((first['spotify monthly listeners'] || first['monthly listeners'] || '').replace(/[^0-9]/g,'')) || null;
+    const track   = first['top track'] || first['track'] || null;
+
+    return { score, streams, listeners, top_track: track, row_count: rows.length };
+  }
+};
+
+// ---------- DOM helpers ----------
+
+function saveCMToken(val) {
+  safeStorage.setItem('cm_token', val.trim());
+  DashboardState.credentials.chartmetric.token = val.trim();
+}
+
+async function loadChartmetric() {
+  const token    = document.getElementById('cm-api-token-input')?.value?.trim() ||
+                   safeStorage.getItem('cm_token');
+  const artistId = document.getElementById('cm-artist-id-input')?.value?.trim() ||
+                   safeStorage.getItem('cm_artist_id');
+
+  if (!token) {
+    setCMStatus('stub', 'No API token — enter below or import CSV');
+    return;
+  }
+
+  try {
+    await ChartmetricConnector.load(token, artistId);
+  } catch(e) {
+    setCMStatus('error', e.message);
+  }
+}
+
+function parseChartmetricCSV(csvText) {
+  try {
+    const parsed = ChartmetricConnector.parseCSV(csvText);
+
+    const record = AnalyticsSchema.create({
+      platform:          'chartmetric',
+      metric_type:       'cross-platform',
+      total_streams:     parsed.streams,
+      current_listeners: parsed.listeners,
+      trend_value:       parsed.score,
+      top_track:         parsed.top_track,
+      freshness:         'daily',
+      source_status:     'manual',
+      last_updated:      new Date().toISOString(),
+    });
+
+    DashboardState.set('chartmetric', record);
+    renderChartmetric(record);
+
+    const resultEl = document.getElementById('cm-import-result');
+    if (resultEl) resultEl.textContent = `✓ Imported ${parsed.row_count} rows`;
+  } catch(e) {
+    const resultEl = document.getElementById('cm-import-result');
+    if (resultEl) resultEl.textContent = `✗ ${e.message}`;
+  }
+}
+
+function applyManualCM() {
+  const score   = parseFloat(document.getElementById('cm-manual-score')?.value   || '0') || null;
+  const streams = parseInt(document.getElementById('cm-manual-streams')?.value   || '0') || null;
+  const track   = document.getElementById('cm-manual-track')?.value?.trim()               || null;
+
+  const record = AnalyticsSchema.create({
+    platform:      'chartmetric',
+    metric_type:   'cross-platform',
+    total_streams: streams,
+    trend_value:   score,
+    top_track:     track,
+    freshness:     'manual',
+    source_status: 'manual',
+    last_updated:  new Date().toISOString(),
+  });
+
+  DashboardState.set('chartmetric', record);
+  renderChartmetric(record);
+  setCMStatus('manual', 'Manual entry applied');
+  refreshSchemaPreview();
+}
+
+function setCMStatus(state, label) {
+  const dot = document.getElementById('cm-status-dot');
+  const lbl = document.getElementById('cm-status-label');
+  if (dot) {
+    dot.className = 'status-dot';
+    if (state === 'connected') dot.classList.add('connected');
+    if (state === 'error')     dot.classList.add('status-err');
+    if (state === 'stub' || state === 'manual') dot.classList.add('status-stub');
+  }
+  if (lbl) lbl.textContent = label;
+
+  const htStatus = document.getElementById('ht-cm-status');
+  if (htStatus) {
+    const map = {
+      connected: ['hs-connected','Connected'],
+      loading:   ['hs-needs-auth','Loading…'],
+      error:     ['hs-error','Error'],
+      manual:    ['hs-limited','Manual Import'],
+    };
+    const [cls, text] = map[state] || ['hs-stub','Stub'];
+    htStatus.className = `hs-tag ${cls}`;
+    htStatus.textContent = text;
+  }
+}
+
+function renderChartmetric(record) {
+  const gate = document.getElementById('cm-auth-gate');
+  const data = document.getElementById('cm-data');
+  if (gate) gate.style.display = 'none';
+  if (data) { data.style.display = 'flex'; data.classList.add('fade-in'); }
+
+  const fmt = AnalyticsSchema.formatNumber;
+
+  el('cm-score',      record.trend_value ?? '—');
+  el('cm-sp-streams', fmt(record.total_streams));
+  el('cm-rank',       '—');
+
+  el('daily-cm-score',   record.trend_value ?? '—');
+  el('daily-cm-streams', fmt(record.total_streams));
+
+  refreshSchemaPreview();
+}
+
+
+// ===== DASHBOARD CONTROLLER =====
+/**
+ * DASHBOARD CONTROLLER
+ * O-Sonix Artist Analytics Dashboard
+ */
+
+// ========== INIT ==========
+
+document.addEventListener('DOMContentLoaded', async () => {
+  initTimestamp();
+  loadSavedInputValues();
+  refreshSchemaPreview();
+  await handleOAuthCallbacks();
+  loadPersistedData();
+});
+
+function initTimestamp() {
+  document.getElementById('last-refresh').textContent =
+    'Last refresh: ' + new Date().toLocaleTimeString();
+}
+
+function loadSavedInputValues() {
+  // Restore any saved artist IDs and credentials to their input fields
+  const spId = safeStorage.getItem('sp_artist_id');
+  if (spId) {
+    const inp = document.getElementById('spotify-artist-id-input');
+    if (inp) inp.value = spId;
+  }
+
+  const spClientId = safeStorage.getItem('sp_client_id');
+  if (spClientId) {
+    const inp = document.getElementById('cfg-spotify-client-id');
+    if (inp) inp.value = spClientId;
+  }
+
+  const scUser = safeStorage.getItem('sc_username');
+  if (scUser) {
+    const inp = document.getElementById('sc-username-input');
+    if (inp) inp.value = scUser;
+  }
+
+  const scClientId = safeStorage.getItem('sc_client_id');
+  if (scClientId) {
+    const inp = document.getElementById('sc-client-id-input');
+    if (inp) inp.value = scClientId;
+  }
+
+  const appleKey = safeStorage.getItem('apple_api_key');
+  if (appleKey) {
+    const inp = document.getElementById('apple-api-key-input');
+    if (inp) inp.value = appleKey;
+  }
+
+  const cmToken = safeStorage.getItem('cm_token');
+  if (cmToken) {
+    const inp = document.getElementById('cm-api-token-input');
+    if (inp) inp.value = cmToken;
+  }
+}
+
+// ========== OAUTH CALLBACK HANDLING ==========
+
+async function handleOAuthCallbacks() {
+  const params = new URLSearchParams(window.location.search);
+
+  // Spotify OAuth callback
+  if (params.has('code') || params.has('error')) {
+    const connected = await SpotifyConnector.handleCallback();
+    if (connected) {
+      // Auto-load artist data after auth
+      const artistId = safeStorage.getItem('sp_artist_id') ||
+                       document.getElementById('spotify-artist-id-input')?.value?.trim();
+      if (artistId) {
+        try {
+          await SpotifyConnector.load(artistId);
+        } catch(e) {
+          setSpotifyStatus('error', e.message);
+          showToast(e.message, 'error');
+        }
+      } else {
+        setSpotifyStatus('loading', 'Connected — enter Artist ID to load data');
+        showToast('Spotify connected. Enter your Artist ID to load data.', 'info');
+      }
+    }
+    return;
+  }
+
+  // Check if we have a valid existing Spotify token
+  const token = SpotifyConnector.getToken();
+  if (token) {
+    const artistId = safeStorage.getItem('sp_artist_id');
+    if (artistId) {
+      try {
+        await SpotifyConnector.load(artistId);
+      } catch(e) {
+        // Token may be expired — clear quietly
+        safeStorage.removeItem('sp_access_token');
+      }
+    }
+  }
+}
+
+// ========== LOAD PERSISTED DATA ==========
+
+function loadPersistedData() {
+  // Restore any previously saved platform records from localStorage
+  const platforms = ['spotify', 'apple', 'soundcloud', 'chartmetric'];
+  platforms.forEach(p => {
+    const rec = DashboardState.records[p];
+    if (!rec) return;
+
+    switch(p) {
+      case 'apple':
+        if (rec.source_status === 'manual' || rec.total_streams) renderApple(rec);
+        break;
+      case 'soundcloud':
+        if (rec.source_status === 'manual') {
+          renderSoundCloud(rec, { username: rec.artist_name, track_count: null, city: null }, rec.total_streams || 0, []);
+        }
+        break;
+      case 'chartmetric':
+        if (rec.source_status === 'manual' || rec.source_status === 'connected') renderChartmetric(rec);
+        break;
+    }
+  });
+  refreshSchemaPreview();
+}
+
+// ========== REFRESH ALL ==========
+
+async function refreshAll() {
+  const btn = document.getElementById('refresh-all-btn');
+  if (btn) { btn.textContent = '↻ Refreshing…'; btn.disabled = true; }
+
+  const promises = [];
+
+  // Spotify
+  const spToken    = SpotifyConnector.getToken();
+  const spArtistId = safeStorage.getItem('sp_artist_id') ||
+                     document.getElementById('spotify-artist-id-input')?.value?.trim();
+  if (spToken && spArtistId) {
+    promises.push(SpotifyConnector.load(spArtistId).catch(e => showToast('Spotify: ' + e.message, 'error')));
+  }
+
+  // SoundCloud
+  const scUser = safeStorage.getItem('sc_username');
+  const scId   = safeStorage.getItem('sc_client_id');
+  if (scUser && scId) {
+    promises.push(SoundCloudConnector.load(scUser, scId).catch(e => showToast('SoundCloud: ' + e.message, 'error')));
+  }
+
+  await Promise.allSettled(promises);
+
+  if (btn) {
+    btn.textContent = '↻ Refresh All';
+    btn.disabled    = false;
+  }
+  document.getElementById('last-refresh').textContent = 'Last refresh: ' + new Date().toLocaleTimeString();
+  showToast('Dashboard refreshed', 'success');
+}
+
+// ========== CONFIG ==========
+
+function toggleConfig() {
+  const drawer = document.getElementById('config-drawer');
+  if (!drawer) return;
+  drawer.style.display = drawer.style.display === 'none' ? 'block' : 'none';
+}
+
+function saveConfig() {
+  const spClientId = document.getElementById('cfg-spotify-client-id')?.value?.trim();
+  const spArtistId = document.getElementById('cfg-spotify-artist-id')?.value?.trim();
+  const scClientId = document.getElementById('cfg-sc-client-id')?.value?.trim();
+  const scUsername = document.getElementById('cfg-sc-username')?.value?.trim();
+
+  if (spClientId) {
+    safeStorage.setItem('sp_client_id', spClientId);
+    DashboardState.credentials.spotify.client_id = spClientId;
+    const inp = document.getElementById('spotify-artist-id-input');
+  }
+  if (spArtistId) {
+    safeStorage.setItem('sp_artist_id', spArtistId);
+    DashboardState.credentials.spotify.artist_id = spArtistId;
+    const inp = document.getElementById('spotify-artist-id-input');
+    if (inp) inp.value = spArtistId;
+  }
+  if (scClientId) {
+    safeStorage.setItem('sc_client_id', scClientId);
+    DashboardState.credentials.soundcloud.client_id = scClientId;
+    const inp = document.getElementById('sc-client-id-input');
+    if (inp) inp.value = scClientId;
+  }
+  if (scUsername) {
+    safeStorage.setItem('sc_username', scUsername);
+    DashboardState.credentials.soundcloud.username = scUsername;
+    const inp = document.getElementById('sc-username-input');
+    if (inp) inp.value = scUsername;
+  }
+
+  toggleConfig();
+  showToast('Configuration saved', 'success');
+}
+
+// ========== EXPORT ==========
+
+function exportJSON() {
+  const json = DashboardState.toJSON();
+  download('osonix-analytics.json', json, 'application/json');
+}
+
+function exportCSV() {
+  const csv = DashboardState.toCSV();
+  download('osonix-analytics.csv', csv, 'text/csv');
+}
+
+function copySchema() {
+  const schema = document.getElementById('schema-preview')?.textContent || '';
+  navigator.clipboard.writeText(schema).then(() => {
+    showToast('Schema copied to clipboard', 'success');
+  });
+}
+
+function download(filename, content, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ========== SCHEMA PREVIEW ==========
+
+function refreshSchemaPreview() {
+  const preview = document.getElementById('schema-preview');
+  if (!preview) return;
+
+  const records = DashboardState.toArray();
+  if (records.length === 0) {
+    const blank = [
+      AnalyticsSchema.create({ platform: 'spotify',     source_status: 'not_connected', freshness: 'live' }),
+      AnalyticsSchema.create({ platform: 'apple',       source_status: 'manual',        freshness: 'daily' }),
+      AnalyticsSchema.create({ platform: 'soundcloud',  source_status: 'not_connected', freshness: 'near-real-time' }),
+      AnalyticsSchema.create({ platform: 'chartmetric', source_status: 'stub',          freshness: 'daily' }),
+    ];
+    // Remove raw field for preview
+    blank.forEach(r => delete r.raw);
+    preview.textContent = JSON.stringify(blank, null, 2);
+    return;
+  }
+
+  const clean = records.map(r => {
+    const c = { ...r };
+    delete c.raw;
+    return c;
+  });
+  preview.textContent = JSON.stringify(clean, null, 2);
+}
+
+// ========== DAILY TOTALS SYNC ==========
+
+// Called when Spotify manual stream is entered
+function syncDailyTotals() {
+  const sp = DashboardState.records.spotify;
+  if (sp?.total_streams) {
+    el('daily-sp-streams', AnalyticsSchema.formatNumber(sp.total_streams));
+  }
+  if (sp?.current_listeners) {
+    el('daily-sp-listeners', AnalyticsSchema.formatNumber(sp.current_listeners));
+  }
+}
+
+// ========== TOAST NOTIFICATIONS ==========
+
+function showToast(message, type = 'info') {
+  const id    = 'toast-' + Date.now();
+  const toast = document.createElement('div');
+  toast.id    = id;
+  const colors = {
+    success: 'rgba(29,185,84,0.95)',
+    error:   'rgba(239,68,68,0.95)',
+    info:    'rgba(74,158,255,0.95)',
+  };
+  toast.style.cssText = `
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: ${colors[type] || colors.info};
+    color: #fff; padding: 10px 20px; border-radius: 8px;
+    font-size: 0.84rem; font-weight: 500; font-family: Inter, sans-serif;
+    z-index: 9999; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    animation: fadeIn 0.2s ease;
+    max-width: 400px; text-align: center;
+  `;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
+}
+
+// ========== AUTO-REFRESH (every 5 min for connected sources) ==========
+let autoRefreshInterval = null;
+
+function startAutoRefresh(intervalMinutes = 5) {
+  if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+  autoRefreshInterval = setInterval(() => {
+    const spToken    = SpotifyConnector.getToken();
+    const spArtistId = safeStorage.getItem('sp_artist_id');
+    if (spToken && spArtistId) {
+      SpotifyConnector.load(spArtistId).catch(() => {});
+    }
+    const scUser = safeStorage.getItem('sc_username');
+    const scId   = safeStorage.getItem('sc_client_id');
+    if (scUser && scId) {
+      SoundCloudConnector.load(scUser, scId).catch(() => {});
+    }
+  }, intervalMinutes * 60 * 1000);
+}
+
+// Start auto-refresh
+startAutoRefresh(5);
+
+</script>
+
+</body>
+</html>
