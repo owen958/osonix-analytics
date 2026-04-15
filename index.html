@@ -1409,6 +1409,7 @@ const AnalyticsSchema = {
     if (n === null || n === undefined) return '—';
     if (typeof n === 'string' && n.trim() !== '' && !isNaN(n)) n = Number(n);
     if (typeof n !== 'number') return n;
+    // Show 0 explicitly rather than treating as falsy
     if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
     if (n >= 1_000)     return (n / 1_000).toFixed(1) + 'K';
     return n.toLocaleString();
@@ -1700,7 +1701,7 @@ const SpotifyConnector = {
       metric_type:      'aggregate',
       total_streams:    null,   // not in API
       current_listeners: null,  // not in API
-      followers:        artistData.followers?.total ?? null,
+      followers:        (artistData.followers?.total !== undefined) ? artistData.followers.total : null,
       top_track:        topTrack,
       trend_value:      artistData.popularity ?? null,
       trend_direction:  null,
@@ -1782,10 +1783,14 @@ function renderSpotify(record, artistData, genres) {
   if (gate) gate.style.display = 'none';
   if (data) { data.style.display = 'flex'; data.classList.add('fade-in'); }
 
-  // KPIs
-  el('sp-followers',   AnalyticsSchema.formatNumber(record.followers));
-  el('sp-popularity',  record.trend_value ?? '—');
+  // KPIs — followers.total may be 0 for smaller artists (Spotify deprecated field)
+  const followersVal = (record.followers !== null && record.followers !== undefined) 
+    ? AnalyticsSchema.formatNumber(record.followers) 
+    : '—';
+  el('sp-followers',   followersVal);
+  el('sp-popularity',  (record.trend_value !== null && record.trend_value !== undefined) ? record.trend_value : '—');
   el('sp-listeners',   '—');   // requires S4A browser
+  console.log('Spotify data loaded:', JSON.stringify({followers: record.followers, popularity: record.trend_value, name: record.artist_name, top_track: record.top_track}));
 
   // Details
   el('sp-top-track',   record.top_track || '—');
