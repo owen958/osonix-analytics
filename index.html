@@ -1784,13 +1784,13 @@ function el(id, val) {
 
 // Called by Connect button
 async function spotifyConnect() {
-  // Read client ID from input if present
-  const input = document.getElementById('spotify-artist-id-input');
-  const cfgId = document.getElementById('cfg-spotify-client-id');
-  if (cfgId && cfgId.value) {
-    DashboardState.credentials.spotify.client_id = cfgId.value.trim();
-    safeStorage.setItem('sp_client_id', cfgId.value.trim());
-  }
+  // Always ensure client ID and artist ID are set from hardcoded values
+  const HARDCODED_CLIENT_ID = 'd03aa16cd30f417c9c58bd4c44e62736';
+  const HARDCODED_ARTIST_ID = '3Bp8tyakzaSDKGrXypcVFm';
+  DashboardState.credentials.spotify.client_id = HARDCODED_CLIENT_ID;
+  DashboardState.credentials.spotify.artist_id = HARDCODED_ARTIST_ID;
+  safeStorage.setItem('sp_client_id', HARDCODED_CLIENT_ID);
+  safeStorage.setItem('sp_artist_id', HARDCODED_ARTIST_ID);
   await SpotifyConnector.authorize();
 }
 
