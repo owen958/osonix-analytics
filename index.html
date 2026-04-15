@@ -1580,7 +1580,14 @@ const SpotifyConnector = {
       code_challenge: challenge,
     });
 
-    window.location = `https://accounts.spotify.com/authorize?${params}`;
+    const authUrl = `https://accounts.spotify.com/authorize?${params}`;
+    // Use direct anchor navigation — most reliable cross-browser approach
+    const a = document.createElement('a');
+    a.href = authUrl;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   },
 
   async exchangeCode(code) {
