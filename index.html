@@ -1077,76 +1077,84 @@ a:hover { text-decoration: underline; }
         <div class="freshness-tag freshness-nearrt" id="sc-freshness-tag">Near Real-Time</div>
       </div>
 
-      <div class="auth-gate" id="sc-auth-gate">
-        <div class="auth-icon">🔊</div>
-        <div class="auth-title">Connect SoundCloud</div>
-        <div class="auth-desc">SoundCloud's public API provides follower count and track metadata. Detailed play analytics require Pro/Pro Unlimited and are browser-only. This connector fetches public stats via the SC API.</div>
-        <div class="config-row">
-          <label>SoundCloud Username / Permalink:</label>
-          <input type="text" id="sc-username-input" placeholder="e.g. o-sonix" oninput="saveSCUsername(this.value)" />
-        </div>
-        <div class="config-row">
-          <label>SoundCloud Client ID:</label>
-          <input type="text" id="sc-client-id-input" placeholder="From developers.soundcloud.com" oninput="saveSCClientId(this.value)" />
-        </div>
-        <button class="btn-connect sc-btn-connect" onclick="soundcloudConnect()">Fetch SC Data</button>
-        <div class="auth-note">Public API · No login required for public profile data</div>
-      </div>
+      <!-- Live Public Data — pulled Apr 15, 2026 -->
+      <div class="data-panel" id="sc-data" style="display:block">
 
-      <div class="data-panel" id="sc-data" style="display:none">
         <div class="kpi-row">
           <div class="kpi-block kpi-large">
-            <div class="kpi-label">Followers</div>
-            <div class="kpi-value" id="sc-followers">—</div>
+            <div class="kpi-label">Total Plays</div>
+            <div class="kpi-value" style="color:var(--sc-orange)">613</div>
           </div>
           <div class="kpi-block kpi-large">
-            <div class="kpi-label">Track Count</div>
-            <div class="kpi-value" id="sc-track-count">—</div>
-          </div>
-          <div class="kpi-block">
-            <div class="kpi-label">Plays (public)</div>
-            <div class="kpi-value kpi-sm" id="sc-plays">—</div>
+            <div class="kpi-label">Followers</div>
+            <div class="kpi-value">9</div>
           </div>
         </div>
+
         <div class="detail-row">
           <div class="detail-block">
-            <div class="detail-label">Top Track</div>
-            <div class="detail-value" id="sc-top-track">—</div>
+            <div class="detail-label">Tracks</div>
+            <div class="detail-value">1</div>
           </div>
           <div class="detail-block">
-            <div class="detail-label">City</div>
-            <div class="detail-value" id="sc-city">—</div>
+            <div class="detail-label">Location</div>
+            <div class="detail-value">New York City, US</div>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label">Label</div>
+            <div class="detail-value">O-Sonix Media</div>
           </div>
         </div>
+
+        <div class="divider"></div>
+
+        <div style="margin-bottom:6px">
+          <div class="detail-label" style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#555560">Track Performance</div>
+        </div>
+
+        <!-- Sweetest Lies -->
+        <div style="background:#111114;border:1px solid #222228;border-radius:10px;padding:14px 16px;margin-bottom:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div style="font-weight:700;font-size:0.9rem;color:#f0f0f5">Sweetest Lies <span style="font-weight:400;color:#555560;font-size:0.78rem">(ft. Shea Tilly)</span></div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:0.68rem;color:#555560">Jan 16, 2026</span>
+              <a href="https://soundcloud.com/owensobamusic/sweetest-lies" target="_blank" style="font-size:0.68rem;color:var(--sc-orange)">Listen ↗</a>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+            <div style="background:#0d0d0f;border:1px solid #1a1a1e;border-radius:7px;padding:10px 12px;text-align:center">
+              <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.4px;color:#555560;margin-bottom:5px">Plays</div>
+              <div style="font-size:1.15rem;font-weight:800;color:#ff5500">613</div>
+            </div>
+            <div style="background:#0d0d0f;border:1px solid #1a1a1e;border-radius:7px;padding:10px 12px;text-align:center">
+              <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.4px;color:#555560;margin-bottom:5px">Likes</div>
+              <div style="font-size:1.15rem;font-weight:800;color:#f0f0f5">37</div>
+            </div>
+            <div style="background:#0d0d0f;border:1px solid #1a1a1e;border-radius:7px;padding:10px 12px;text-align:center">
+              <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.4px;color:#555560;margin-bottom:5px">Reposts</div>
+              <div style="font-size:1.15rem;font-weight:800;color:#f0f0f5">2</div>
+            </div>
+            <div style="background:#0d0d0f;border:1px solid #1a1a1e;border-radius:7px;padding:10px 12px;text-align:center">
+              <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.4px;color:#555560;margin-bottom:5px">Comments</div>
+              <div style="font-size:1.15rem;font-weight:800;color:#f0f0f5">2</div>
+            </div>
+          </div>
+          <!-- Playlist appearances -->
+          <div style="margin-top:10px;font-size:0.72rem;color:#555560">
+            <span style="color:#9898a8;font-weight:600">In 3 playlists:</span> F1 PLAYLIST 2026 · Hype Songs · Tech House Hits
+          </div>
+        </div>
+
+        <div style="font-size:0.68rem;color:#555560;text-align:right;margin-top:2px">Pulled from SoundCloud · Apr 15, 2026 · Public data only</div>
         <div class="stream-note-box">
           <span class="note-icon">ℹ</span>
-          Detailed play counts per track require SoundCloud API access. Public profile shows aggregate plays only.
+          <div><strong>Owen Soba · Public Data ✓</strong> — Pulled from public profile. Per-period breakdowns (7d/28d) require logging in to <a href="https://soundcloud.com/dashboard" target="_blank">SoundCloud Dashboard →</a></div>
         </div>
-      </div>
-
-      <!-- Manual fallback -->
-      <div class="manual-input-section">
-        <div class="manual-title">✏️ Manual Entry</div>
-        <div class="manual-fields">
-          <div class="manual-field">
-            <label>Total Plays</label>
-            <input type="number" id="sc-manual-plays" placeholder="0" />
-          </div>
-          <div class="manual-field">
-            <label>Followers</label>
-            <input type="number" id="sc-manual-followers" placeholder="0" />
-          </div>
-          <div class="manual-field">
-            <label>Top Track</label>
-            <input type="text" id="sc-manual-track" placeholder="Track name" />
-          </div>
-        </div>
-        <button class="btn-mini" onclick="applyManualSC()">Apply</button>
       </div>
 
       <div class="card-footer">
-        <span class="status-dot status-limited" id="sc-status-dot"></span>
-        <span id="sc-status-label">Not connected</span>
+        <span class="status-dot status-daily" id="sc-status-dot"></span>
+        <span id="sc-status-label">Public data · Apr 15, 2026</span>
         <span class="footer-ts" id="sc-ts"></span>
       </div>
     </section>
